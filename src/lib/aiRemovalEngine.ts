@@ -18,26 +18,47 @@ export interface AiRemovalResult {
 /**
  * Executes real AI neural background removal.
  * Uses in-browser deep-learning segmentation (@imgly/background-removal)
- * with Cloudinary/n8n pipeline failover.
+ * with monotonic, strictly forward-advancing progress telemetry.
  */
 export async function executeAiBackgroundRemoval(
   imageSource: File | Blob | string,
   options?: AiRemovalOptions
 ): Promise<AiRemovalResult> {
   const startTime = Date.now();
+  let maxReportedPct = 10;
 
   try {
     if (options?.onProgress) {
       options.onProgress(10, 'Initializing neural network...');
     }
 
-    // Run in-browser AI segmentation model
+    // Run in-browser AI segmentation model with smooth weighted progress
     const blob = await removeBackground(imageSource, {
-      progress: (_key: string, current: number, total: number) => {
+      progress: (key: string, current: number, total: number) => {
         if (options?.signal?.aborted) return;
         if (total > 0 && options?.onProgress) {
-          const pct = Math.min(Math.round((current / total) * 80) + 15, 95);
-          options.onProgress(pct, 'Extracting foreground subject...');
+          const ratio = Math.min(Math.max(current / total, 0), 1);
+          let calculatedPct = 15;
+          let stepName = 'Extracting foreground subject...';
+
+          if (key.includes('fetch') || key.includes('download')) {
+            // Model downloading phase: 15% -> 45%
+            calculatedPct = Math.round(15 + ratio * 30);
+            stepName = 'Loading neural model weights...';
+          } else if (key.includes('compute') || key.includes('inference')) {
+            // Neural inference execution phase: 45% -> 92%
+            calculatedPct = Math.round(45 + ratio * 47);
+            stepName = 'Extracting foreground subject...';
+          } else {
+            calculatedPct = Math.round(20 + ratio * 70);
+            stepName = 'Removing background artifacts...';
+          }
+
+          // Monotonic progress guarantee: never jump backward
+          if (calculatedPct > maxReportedPct) {
+            maxReportedPct = Math.min(calculatedPct, 95);
+            options.onProgress(maxReportedPct, stepName);
+          }
         }
       },
     });
