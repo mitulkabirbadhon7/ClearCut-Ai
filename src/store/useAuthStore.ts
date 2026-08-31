@@ -33,7 +33,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
 
     if (!isSupabaseConfigured || !supabase) {
-      // Development fallback state
       set({ isLoading: false, isInitialized: true });
       return;
     }
@@ -42,13 +41,25 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { user, session } = await getInitialSession();
       set({ user, session });
 
-      // Listen for real-time auth changes (sign in, sign out, token refresh)
-      supabase.auth.onAuthStateChange((_event, newSession) => {
+      // Listen for real-time auth changes (sign in, sign out, token refresh, OAuth callbacks)
+      supabase.auth.onAuthStateChange((event, newSession) => {
         set({
           user: newSession?.user ?? null,
           session: newSession ?? null,
           isLoading: false,
         });
+
+        // Clean up OAuth tokens from URL after successful Google sign-in
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          if (
+            window.location.hash.includes('access_token') ||
+            window.location.hash.includes('type=') ||
+            window.location.search.includes('code=')
+          ) {
+            window.history.replaceState(null, '', '/#dashboard');
+            window.location.hash = 'dashboard';
+          }
+        }
       });
     } catch (err) {
       console.error('Error initializing Supabase Auth:', err);

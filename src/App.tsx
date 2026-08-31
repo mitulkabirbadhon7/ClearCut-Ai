@@ -20,10 +20,28 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export default function App() {
   const getInitialRoute = (): string => {
-    const hash = window.location.hash.replace('#', '').split('?')[0];
-    if (hash && hash !== '/') return hash;
+    const rawHash = window.location.hash || '';
+    const rawSearch = window.location.search || '';
+
+    // Handle OAuth callback tokens (Google sign-in redirect or email confirmation)
+    if (
+      rawHash.includes('access_token') ||
+      rawHash.includes('token_type=') ||
+      rawSearch.includes('code=')
+    ) {
+      return 'dashboard';
+    }
+
+    if (rawHash.includes('type=recovery')) {
+      return 'reset-password';
+    }
+
+    const cleanHash = rawHash.replace('#', '').split('?')[0];
+    if (cleanHash && cleanHash !== '/') return cleanHash;
+
     const path = window.location.pathname.replace(/^\//, '').split('?')[0];
     if (path && path !== '') return path;
+
     return 'home';
   };
 
