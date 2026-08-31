@@ -49,7 +49,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
       <div className="space-y-4 text-center sm:text-left">
         <Badge variant="gradient">Customer Support</Badge>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          Contact <span className="text-gradient">SnapCut AI</span>
+          Contact <span className="text-gradient">ClearCut AI</span>
         </h1>
         <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
           Need assistance with bKash payments, enterprise API integration, or feature requests? We are here to help.
@@ -105,7 +105,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
               <h3 className="text-sm font-bold text-text-primary">Email Support</h3>
             </div>
             <p className="text-xs text-text-muted">Direct inquiries:</p>
-            <p className="text-xs font-semibold text-text-primary">support@snapcut.ai</p>
+            <p className="text-xs font-semibold text-text-primary">support@clearcut.ai</p>
           </Card>
 
           <Card variant="default" className="p-6 space-y-4">

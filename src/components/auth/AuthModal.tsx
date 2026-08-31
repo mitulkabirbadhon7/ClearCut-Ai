@@ -51,7 +51,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         await initializeAuth();
         addToast({
           title: 'Sign In Successful',
-          description: `Welcome back to SnapCut AI!`,
+          description: `Welcome back to ClearCut AI!`,
           type: 'success',
         });
         onClose();
@@ -116,7 +116,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <BrandLogo size="sm" showText={false} />
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold text-text-primary">
-            {mode === 'login' && 'Sign in to SnapCut AI'}
+            {mode === 'login' && 'Sign in to ClearCut AI'}
             {mode === 'register' && 'Create Your Free Account'}
             {mode === 'forgot' && 'Reset Password'}
           </h3>

@@ -91,7 +91,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
         <div className="absolute inset-0 w-full h-full bg-checkerboard flex items-center justify-center">
           <img
             src={processedSvg}
-            alt="SnapCut AI Processed Background Removed Cutout"
+            alt="ClearCut AI Processed Background Removed Cutout"
             className="w-full h-full object-contain pointer-events-none drop-shadow-2xl"
           />
           {/* Label Badge Right */}

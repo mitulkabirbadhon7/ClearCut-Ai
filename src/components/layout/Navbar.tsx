@@ -37,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => handleLinkClick('home')}
           className="focus:outline-none focus:ring-2 focus:ring-brand-blue/50 rounded-lg text-left"
-          aria-label="SnapCut AI Home"
+          aria-label="ClearCut AI Home"
         >
           <BrandLogo size="md" />
         </button>

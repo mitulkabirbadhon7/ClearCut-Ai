@@ -30,7 +30,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
           Privacy Policy
         </h1>
         <p className="text-xs sm:text-sm text-text-muted">
-          Last Updated: August 31, 2026 • SnapCut AI Platform
+          Last Updated: August 31, 2026 • ClearCut AI Platform
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
           <div>
             <h4 className="text-sm font-bold text-text-primary">24-Hour Ephemeral Storage Guarantee</h4>
             <p className="text-xs text-text-secondary mt-1">
-              SnapCut AI never permanently retains your uploaded photos or resulting transparent cutouts. Files are automatically destroyed after 24 hours.
+              ClearCut AI never permanently retains your uploaded photos or resulting transparent cutouts. Files are automatically destroyed after 24 hours.
             </p>
           </div>
         </div>
@@ -59,7 +59,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
             <span className="text-brand-cyan">2.</span> How Images Are Processed
           </h2>
           <p>
-            Images uploaded to SnapCut AI are sent via encrypted SSL connections to our secure temporary cloud storage (Cloudinary) and passed to our AI segmentation models. Images are not used to train machine learning models without your express consent.
+            Images uploaded to ClearCut AI are sent via encrypted SSL connections to our secure temporary cloud storage (Cloudinary) and passed to our AI segmentation models. Images are not used to train machine learning models without your express consent.
           </p>
         </section>
 
@@ -68,7 +68,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
             <span className="text-brand-cyan">3.</span> Payment Privacy (bKash Gateway)
           </h2>
           <p>
-            SnapCut AI does not store credit card numbers, bKash PINs, or financial secrets on our servers. All financial transactions are processed securely through the official tokenized bKash Merchant Gateway.
+            ClearCut AI does not store credit card numbers, bKash PINs, or financial secrets on our servers. All financial transactions are processed securely through the official tokenized bKash Merchant Gateway.
           </p>
         </section>
 
@@ -86,7 +86,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
             <span className="text-brand-cyan">5.</span> Contacting Privacy Support
           </h2>
           <p>
-            For inquiries regarding data deletion or privacy verification, contact us at: <span className="text-brand-cyan font-semibold">privacy@snapcut.ai</span>.
+            For inquiries regarding data deletion or privacy verification, contact us at: <span className="text-brand-cyan font-semibold">privacy@clearcut.ai</span>.
           </p>
         </section>
       </Card>

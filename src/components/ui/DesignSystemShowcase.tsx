@@ -66,7 +66,7 @@ export const DesignSystemShowcase: React.FC = () => {
           <span>Design System & UI Component Foundation</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          SnapCut AI <span className="text-gradient">Design System</span>
+          ClearCut AI <span className="text-gradient">Design System</span>
         </h1>
         <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
           Curated dark-mode aesthetic, WCAG-accessible components, precision typography, and responsive primitives built with Tailwind CSS.
@@ -294,7 +294,7 @@ export const DesignSystemShowcase: React.FC = () => {
       <Modal
         isOpen={demoModalOpen}
         onClose={() => setDemoModalOpen(false)}
-        title="SnapCut AI Modal Component"
+        title="ClearCut AI Modal Component"
         description="Accessible dialog with keyboard ESC listener, backdrop blur, and smooth entrance."
       >
         <div className="space-y-4 pt-2">

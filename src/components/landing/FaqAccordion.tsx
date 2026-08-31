@@ -13,7 +13,7 @@ export const FaqAccordion: React.FC = () => {
     {
       question: 'How fast is the AI background removal?',
       answer:
-        'SnapCut AI processes high-resolution images in approximately 1.5 to 3 seconds, delivering a clean transparent PNG cutout ready for download.',
+        'ClearCut AI processes high-resolution images in approximately 1.5 to 3 seconds, delivering a clean transparent PNG cutout ready for download.',
     },
     {
       question: 'How do I pay with bKash in Bangladesh?',
@@ -23,17 +23,17 @@ export const FaqAccordion: React.FC = () => {
     {
       question: 'Are my uploaded photos stored permanently?',
       answer:
-        'No. SnapCut AI has a strict 24-hour ephemeral retention policy. Both the original photo and the processed PNG cutout are automatically deleted from our temporary storage after 24 hours. We respect your privacy and never use your images for training.',
+        'No. ClearCut AI has a strict 24-hour ephemeral retention policy. Both the original photo and the processed PNG cutout are automatically deleted from our temporary storage after 24 hours. We respect your privacy and never use your images for training.',
     },
     {
-      question: 'Can I use SnapCut AI for free?',
+      question: 'Can I use ClearCut AI for free?',
       answer:
         'Yes! Every registered user receives 5 free high-definition background removals every single day. If you need high volume for e-commerce, client projects, or agency work, you can purchase affordable BDT credit packs anytime.',
     },
     {
       question: 'Do you offer a Developer REST API?',
       answer:
-        'Yes! SnapCut AI includes a high-speed RESTful Developer API with secure hashed API keys, fast response times, and standard JSON responses for integrating automated background removal into your e-commerce platform, mobile app, or workflow.',
+        'Yes! ClearCut AI includes a high-speed RESTful Developer API with secure hashed API keys, fast response times, and standard JSON responses for integrating automated background removal into your e-commerce platform, mobile app, or workflow.',
     },
   ];
 

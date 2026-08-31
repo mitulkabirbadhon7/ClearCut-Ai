@@ -77,7 +77,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
           <CardHeader className="p-0 pb-6 text-center">
             <CardTitle className="text-2xl font-extrabold">Set New Password</CardTitle>
             <CardDescription>
-              Enter a secure new password for your SnapCut AI account.
+              Enter a secure new password for your ClearCut AI account.
             </CardDescription>
           </CardHeader>
 

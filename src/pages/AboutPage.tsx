@@ -25,7 +25,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       <div className="space-y-4 text-center sm:text-left">
         <Badge variant="gradient">Our Mission</Badge>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          About <span className="text-gradient">SnapCut AI</span>
+          About <span className="text-gradient">ClearCut AI</span>
         </h1>
         <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
           Democratizing professional AI image segmentation for e-commerce entrepreneurs, freelancers, and businesses in Bangladesh and worldwide.
@@ -34,7 +34,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
 
       <Card variant="default" className="p-8 sm:p-10 space-y-6 text-sm text-text-secondary leading-relaxed">
         <p>
-          Founded with a clear purpose, SnapCut AI removes the friction of complex desktop photo editing software. By combining high-speed neural networks with the native bKash payment infrastructure, we provide Bangladeshi creators and businesses with an instant, affordable, and world-class background removal solution.
+          Founded with a clear purpose, ClearCut AI removes the friction of complex desktop photo editing software. By combining high-speed neural networks with the native bKash payment infrastructure, we provide Bangladeshi creators and businesses with an instant, affordable, and world-class background removal solution.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border-subtle">
           <div className="space-y-1">

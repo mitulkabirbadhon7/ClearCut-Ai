@@ -1,7 +1,7 @@
 ================================================================================
-SNAPCUT AI - EXTERNAL SERVICES & ENVIRONMENT SETUP CHECKLIST
+CLEARCUT AI - EXTERNAL SERVICES & ENVIRONMENT SETUP CHECKLIST
 ================================================================================
-Project: SnapCut AI
+Project: ClearCut AI
 Target Ecosystem: React + Vite + Supabase + n8n Cloud + Cloudinary + bKash + Vercel
 Status Legend: [x] Verified/Configured | [ ] Pending Configuration
 ================================================================================

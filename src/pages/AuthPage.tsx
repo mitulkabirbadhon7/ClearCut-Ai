@@ -54,7 +54,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
         await initializeAuth();
         addToast({
           title: 'Sign In Successful',
-          description: `Welcome back to SnapCut AI!`,
+          description: `Welcome back to ClearCut AI!`,
           type: 'success',
         });
         if (onNavigate) onNavigate('dashboard');

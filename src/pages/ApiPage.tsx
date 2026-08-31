@@ -26,7 +26,7 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       <div className="space-y-4">
         <Badge variant="gradient">RESTful Developer API v1</Badge>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-          SnapCut AI <span className="text-gradient">Developer API Reference</span>
+          ClearCut AI <span className="text-gradient">Developer API Reference</span>
         </h1>
         <p className="text-text-secondary text-sm sm:text-base leading-relaxed max-w-3xl">
           Integrate high-speed, automated image background removal directly into your Node.js, Python, PHP, or Next.js applications.
@@ -66,7 +66,7 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
             <span>cURL Request Example</span>
           </div>
           <pre className="p-4 rounded-xl bg-black/80 text-brand-cyan font-mono text-xs overflow-x-auto leading-relaxed border border-border-subtle">
-{`curl -X POST https://api.snapcut.ai/v1/remove-background \\
+{`curl -X POST https://api.clearcut.ai/v1/remove-background \\
   -H "x-api-key: sc_live_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -83,7 +83,7 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
             <span>JavaScript / Node.js (Fetch)</span>
           </div>
           <pre className="p-4 rounded-xl bg-black/80 text-text-secondary font-mono text-xs overflow-x-auto leading-relaxed border border-border-subtle">
-{`const response = await fetch('https://api.snapcut.ai/v1/remove-background', {
+{`const response = await fetch('https://api.clearcut.ai/v1/remove-background', {
   method: 'POST',
   headers: {
     'x-api-key': 'sc_live_your_api_key_here',

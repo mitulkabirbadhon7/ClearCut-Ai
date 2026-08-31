@@ -101,7 +101,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button onClick={(e) => handleNav('about', e)} className="hover:text-brand-cyan transition-colors">
-                  About SnapCut AI
+                  About ClearCut AI
                 </button>
               </li>
               <li>
@@ -116,7 +116,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
           <div className="flex items-center gap-1.5">
-            <span>© {new Date().getFullYear()} SnapCut AI. Crafted with</span>
+            <span>© {new Date().getFullYear()} ClearCut AI. Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
             <span>for creators & businesses.</span>
           </div>

@@ -1,9 +1,9 @@
-# SnapCut AI ⚡
+# ClearCut AI ⚡
 
 > **Fast + Simple + Professional AI-Powered Image Background Removal Platform**
 
 [![Vite](https://img.shields.io/badge/Vite-6.0+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/React-19.0+-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-18.0+-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4+-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
@@ -13,9 +13,9 @@
 
 ## 🌟 Overview
 
-**SnapCut AI** is a production-ready AI SaaS application that allows e-commerce sellers, marketers, graphic designers, and content creators to remove image backgrounds with high precision in one click.
+**ClearCut AI** is a production-ready AI SaaS application that allows e-commerce sellers, marketers, graphic designers, and content creators to remove image backgrounds with high precision in one click.
 
-Engineered with a serverless, privacy-first architecture, SnapCut AI delivers instant cutouts with transparent PNG exports, an ephemeral 24-hour media lifecycle, a robust credit engine, and native **bKash Payment Gateway** integration for Bangladesh and global expansion.
+Engineered with a serverless, privacy-first architecture, ClearCut AI delivers instant cutouts with transparent PNG exports, an ephemeral 24-hour media lifecycle, a robust credit engine, and native **bKash Payment Gateway** integration for Bangladesh and global expansion.
 
 ---
 

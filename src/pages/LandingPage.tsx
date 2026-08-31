@@ -114,7 +114,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <Badge variant="default">Streamlined Process</Badge>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-text-primary tracking-tight">
-            How SnapCut AI Works
+            How ClearCut AI Works
           </h2>
           <p className="text-text-secondary text-sm sm:text-base">
             Designed for maximum speed and simplicity. 3 steps, 2 seconds.
@@ -156,7 +156,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <Badge variant="gradient">Engineered for Excellence</Badge>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-text-primary tracking-tight">
-            Why Creators & Businesses Choose SnapCut AI
+            Why Creators & Businesses Choose ClearCut AI
           </h2>
         </div>
 
@@ -421,7 +421,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 <span className="ml-2 text-text-primary font-bold">POST /v1/remove-background</span>
               </div>
               <pre className="pt-3 text-brand-cyan">
-                {`curl -X POST https://api.snapcut.ai/v1/remove-background \\
+                {`curl -X POST https://api.clearcut.ai/v1/remove-background \\
   -H "x-api-key: sc_live_xxxxxxxxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{"image_url": "https://example.com/product.jpg"}'`}

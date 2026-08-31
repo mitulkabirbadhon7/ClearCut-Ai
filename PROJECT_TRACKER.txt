@@ -1,10 +1,10 @@
 ================================================================================
-SNAPCUT AI - MASTER PROJECT TRACKER & DEVELOPMENT JOURNAL
+CLEARCUT AI - MASTER PROJECT TRACKER & DEVELOPMENT JOURNAL
 ================================================================================
-Project: SnapCut AI
+Project: ClearCut AI
 Owner & Developer: MD Mitul Kabir Badhon
 Role & Lead Mentor: Senior Full-Stack Architect / Antigravity AI
-Repository Target: SnapCut-AI
+Repository Target: ClearCut-AI
 Last Updated: 2026-08-31
 ================================================================================
 
