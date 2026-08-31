@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { validateImageDimensions } from '@/lib/imageValidator';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
-import { triggerBackgroundRemoval } from '@/lib/api';
+import { executeAiBackgroundRemoval } from '@/lib/aiRemovalEngine';
+import { useAuthStore } from './useAuthStore';
 
 export type ProcessingStatus =
   | 'idle'
@@ -19,6 +20,7 @@ interface ProcessingState {
   status: ProcessingStatus;
   uploadProgress: number;
   processingProgress: number;
+  processingStep: string;
   error: string | null;
   dimensions: { width: number; height: number; aspectRatio: number } | null;
   jobId: string | null;
@@ -41,6 +43,7 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
   status: 'idle',
   uploadProgress: 0,
   processingProgress: 0,
+  processingStep: 'Initializing...',
   error: null,
   dimensions: null,
   jobId: null,
@@ -51,6 +54,10 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
     const currentPreview = get().previewUrl;
     if (currentPreview && currentPreview.startsWith('blob:')) {
       URL.revokeObjectURL(currentPreview);
+    }
+    const currentProcessed = get().processedUrl;
+    if (currentProcessed && currentProcessed.startsWith('blob:')) {
+      URL.revokeObjectURL(currentProcessed);
     }
 
     set({
@@ -91,7 +98,7 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
       set({ status: 'validating', error: null });
       const response = await fetch(url);
       const blob = await response.blob();
-      const file = new File([blob], 'sample-image.png', { type: blob.type || 'image/png' });
+      const file = new File([blob], 'sample-image.jpg', { type: blob.type || 'image/jpeg' });
       await get().setFile(file);
     } catch {
       set({
@@ -108,11 +115,13 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
     const controller = new AbortController();
     set({
       status: 'uploading',
-      uploadProgress: 5,
+      uploadProgress: 10,
+      processingStep: 'Uploading photo...',
       error: null,
       abortController: controller,
     });
 
+    // 1. Upload to Cloudinary (ephemeral storage)
     const uploadRes = await uploadImageToCloudinary(
       file,
       (progress) => set({ uploadProgress: progress }),
@@ -132,17 +141,22 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
       uploadedUrl: uploadRes.secureUrl,
       status: 'processing',
       uploadProgress: 100,
-      processingProgress: 30,
+      processingProgress: 20,
+      processingStep: 'Running neural AI segmentation...',
     });
 
-    const aiRes = await triggerBackgroundRemoval(
-      {
-        imageUrl: uploadRes.secureUrl,
-      },
-      controller.signal
-    );
+    // 2. Run Real Neural AI Background Removal Engine
+    const userId = useAuthStore.getState().user?.id;
 
-    if (!aiRes.success || !aiRes.processed_image_url) {
+    const aiRes = await executeAiBackgroundRemoval(file, {
+      signal: controller.signal,
+      userId,
+      onProgress: (pct, step) => {
+        set({ processingProgress: pct, processingStep: step });
+      },
+    });
+
+    if (!aiRes.success || !aiRes.processedImageUrl) {
       set({
         status: 'error',
         error: aiRes.error || 'AI background removal failed. Please try again.',
@@ -152,21 +166,25 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
     }
 
     set({
-      processedUrl: aiRes.processed_image_url,
-      jobId: aiRes.job_id || null,
+      processedUrl: aiRes.processedImageUrl,
+      jobId: `job_${Date.now()}`,
       status: 'completed',
       processingProgress: 100,
+      processingStep: 'Done!',
       abortController: null,
     });
   },
 
   cancelOperation: () => {
-    const { abortController, previewUrl } = get();
+    const { abortController, previewUrl, processedUrl } = get();
     if (abortController) {
       abortController.abort();
     }
     if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
+    }
+    if (processedUrl && processedUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(processedUrl);
     }
     set({
       status: 'idle',
@@ -178,12 +196,15 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
   },
 
   resetStudio: () => {
-    const { previewUrl, abortController } = get();
+    const { previewUrl, processedUrl, abortController } = get();
     if (abortController) {
       abortController.abort();
     }
     if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
+    }
+    if (processedUrl && processedUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(processedUrl);
     }
     set({
       file: null,

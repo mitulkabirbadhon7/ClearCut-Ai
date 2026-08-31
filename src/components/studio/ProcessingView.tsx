@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { useProcessingStore } from '@/store/useProcessingStore';
 
 export const ProcessingView: React.FC = () => {
-  const { previewUrl, processingProgress, cancelOperation } = useProcessingStore();
+  const { previewUrl, processingProgress, processingStep, cancelOperation } = useProcessingStore();
 
   return (
     <div className="rounded-2xl border border-brand-blue/30 bg-card-elevated p-6 sm:p-8 space-y-6 animate-in fade-in-50 duration-300">
@@ -36,7 +36,7 @@ export const ProcessingView: React.FC = () => {
         {/* Floating AI status chip */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-brand-blue/40 flex items-center gap-2 shadow-2xl">
           <Sparkles className="w-4 h-4 text-brand-cyan animate-spin" />
-          <span className="text-xs font-semibold text-text-primary">Isolating Foreground Subject...</span>
+          <span className="text-xs font-semibold text-text-primary">{processingStep || 'Isolating Foreground Subject...'}</span>
         </div>
       </div>
 
