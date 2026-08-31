@@ -9,10 +9,22 @@ import { PrivacyPage } from '@/pages/PrivacyPage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { AuthPage } from '@/pages/AuthPage';
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { useAppStore } from '@/store/useAppStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function App() {
   const [activeRoute, setActiveRoute] = useState<string>('home');
+  const { activeModal, setActiveModal } = useAppStore();
+  const { initializeAuth } = useAuthStore();
+
+  // Initialize Supabase Auth session on app launch
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   // Synchronize route with URL hash for clean address bar state and bookmarking
   useEffect(() => {
@@ -52,12 +64,18 @@ export default function App() {
         return <AboutPage onNavigate={navigateTo} />;
       case 'contact':
         return <ContactPage onNavigate={navigateTo} />;
+      case 'reset-password':
+        return <ResetPasswordPage onNavigate={navigateTo} />;
       case 'auth':
       case 'login':
       case 'register':
         return <AuthPage onNavigate={navigateTo} />;
       case 'dashboard':
-        return <DashboardPage onNavigate={navigateTo} />;
+        return (
+          <ProtectedRoute onNavigate={navigateTo}>
+            <DashboardPage onNavigate={navigateTo} />
+          </ProtectedRoute>
+        );
       case 'home':
       default:
         return <LandingPage onNavigate={navigateTo} />;
@@ -67,6 +85,13 @@ export default function App() {
   return (
     <MainLayout activeRoute={activeRoute} onNavigate={navigateTo}>
       {renderActivePage()}
+
+      {/* Global Auth Modal */}
+      <AuthModal
+        isOpen={activeModal === 'auth'}
+        onClose={() => setActiveModal(null)}
+        onSuccess={() => navigateTo('dashboard')}
+      />
     </MainLayout>
   );
 }

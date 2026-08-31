@@ -3,8 +3,16 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Mail, Lock, User, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  resetPasswordForEmail,
+  isSupabaseConfigured,
+} from '@/lib/supabase';
 
 interface AuthPageProps {
   onNavigate?: (route: string) => void;
@@ -17,37 +25,88 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { addToast } = useAppStore();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { addToast } = useAppStore();
+  const { initializeAuth } = useAuthStore();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      if (!isSupabaseConfigured) {
+        setTimeout(() => {
+          setIsLoading(false);
+          addToast({
+            title: mode === 'login' ? 'Signed In (Demo)' : 'Account Created (Demo)',
+            description: 'Supabase credentials pending in .env file. Working in demo mode.',
+            type: 'info',
+          });
+          if (onNavigate) onNavigate('dashboard');
+        }, 800);
+        return;
+      }
+
       if (mode === 'login') {
+        await signInWithEmail(email, password);
+        await initializeAuth();
         addToast({
           title: 'Sign In Successful',
-          description: `Welcome back, ${email || 'user'}! Supabase session active.`,
+          description: `Welcome back to SnapCut AI!`,
           type: 'success',
         });
         if (onNavigate) onNavigate('dashboard');
       } else if (mode === 'register') {
+        await signUpWithEmail(email, password, fullName);
+        await initializeAuth();
         addToast({
           title: 'Account Created',
-          description: '5 Daily Free Credits have been assigned to your wallet.',
+          description: 'Please check your email to verify your account.',
           type: 'success',
         });
         if (onNavigate) onNavigate('dashboard');
       } else {
+        await resetPasswordForEmail(email);
         addToast({
           title: 'Password Reset Sent',
-          description: `Instructions sent to ${email}`,
+          description: `Recovery instructions sent to ${email}`,
           type: 'info',
         });
         setMode('login');
       }
-    }, 1200);
+    } catch (err: any) {
+      const msg = err?.message || 'An error occurred during authentication.';
+      setErrorMsg(msg);
+      addToast({
+        title: 'Authentication Failed',
+        description: msg,
+        type: 'error',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      if (!isSupabaseConfigured) {
+        addToast({
+          title: 'Google OAuth',
+          description: 'Configure VITE_SUPABASE_URL and Supabase Google Provider in .env to enable OAuth.',
+          type: 'info',
+        });
+        return;
+      }
+      await signInWithGoogle();
+    } catch (err: any) {
+      addToast({
+        title: 'Google OAuth Failed',
+        description: err?.message || 'Could not sign in with Google.',
+        type: 'error',
+      });
+    }
   };
 
   return (
@@ -74,25 +133,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
               {mode === 'forgot' && 'Reset Your Password'}
             </CardTitle>
             <CardDescription>
-              {mode === 'login' && 'Sign in to access your images, credits, and history.'}
+              {mode === 'login' && 'Sign in to access your image cutouts, credits, and history.'}
               {mode === 'register' && 'Get 5 free background removals every single day.'}
               {mode === 'forgot' && 'Enter your registered email to receive a recovery link.'}
             </CardDescription>
           </CardHeader>
 
           <CardContent className="p-0 space-y-5">
-            {/* Social Google OAuth Button */}
+            {/* Google OAuth Button */}
             {mode !== 'forgot' && (
               <>
                 <button
                   type="button"
-                  onClick={() => {
-                    addToast({
-                      title: 'Google OAuth',
-                      description: 'Connecting to Supabase Google Provider (Phase 4)...',
-                      type: 'info',
-                    });
-                  }}
+                  onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-border text-sm font-semibold text-text-primary transition-colors shadow-sm"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -169,6 +222,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
                   >
                     Forgot password?
                   </button>
+                </div>
+              )}
+
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
                 </div>
               )}
 

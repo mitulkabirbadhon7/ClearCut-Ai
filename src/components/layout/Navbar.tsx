@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Button } from '@/components/ui/Button';
+import { UserMenu } from './UserMenu';
 import { Menu, X, Sparkles, LogIn } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface NavbarProps {
   onNavigate?: (route: string) => void;
@@ -13,12 +15,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeRoute = 'home',
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuthStore();
 
   const navLinks = [
     { label: 'Features', id: 'features' },
     { label: 'Pricing (BDT)', id: 'pricing' },
     { label: 'Developer API', id: 'api' },
-    { label: 'Dashboard', id: 'dashboard' },
   ];
 
   const handleLinkClick = (id: string) => {
@@ -53,18 +55,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               {link.label}
             </button>
           ))}
+          {user && (
+            <button
+              onClick={() => handleLinkClick('dashboard')}
+              className={`text-sm font-medium transition-colors hover:text-brand-cyan ${
+                activeRoute === 'dashboard' ? 'text-brand-cyan font-bold' : 'text-text-secondary'
+              }`}
+            >
+              Dashboard
+            </button>
+          )}
         </nav>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<LogIn className="w-4 h-4" />}
-            onClick={() => handleLinkClick('auth')}
-          >
-            Sign In
-          </Button>
+          {user ? (
+            <UserMenu onNavigate={onNavigate} />
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<LogIn className="w-4 h-4" />}
+              onClick={() => handleLinkClick('auth')}
+            >
+              Sign In
+            </Button>
+          )}
 
           <Button
             variant="gradient"
@@ -109,18 +125,34 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {link.label}
               </button>
             ))}
+            {user && (
+              <button
+                onClick={() => handleLinkClick('dashboard')}
+                className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeRoute === 'dashboard' ? 'text-brand-cyan font-bold bg-card-elevated' : 'text-text-secondary'
+                }`}
+              >
+                User Dashboard
+              </button>
+            )}
           </div>
 
           <div className="pt-3 border-t border-border-subtle flex flex-col gap-2.5">
-            <Button
-              variant="outline"
-              size="md"
-              className="w-full justify-center"
-              leftIcon={<LogIn className="w-4 h-4" />}
-              onClick={() => handleLinkClick('auth')}
-            >
-              Sign In
-            </Button>
+            {user ? (
+              <div className="pb-1">
+                <UserMenu onNavigate={onNavigate} />
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-center"
+                leftIcon={<LogIn className="w-4 h-4" />}
+                onClick={() => handleLinkClick('auth')}
+              >
+                Sign In
+              </Button>
+            )}
             <Button
               variant="gradient"
               size="md"
