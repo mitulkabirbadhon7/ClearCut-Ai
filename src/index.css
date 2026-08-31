@@ -37,12 +37,41 @@
     --color-border-highlight: #94A3B8;
   }
 
+  html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
+    width: 100%;
+    max-width: 100%;
     background-color: var(--color-background) !important;
     color: var(--color-text-primary) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
+    position: relative;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Prevent automatic zooming when tapping input fields on iOS / Android mobile */
+  @media screen and (max-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 
   /* Custom smooth scrollbar */
