@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ApiPlayground } from '@/components/api/ApiPlayground';
 import { CodeSnippetViewer } from '@/components/api/CodeSnippetViewer';
 import { EndpointCard } from '@/components/api/EndpointCard';
-import { Key, Sparkles, Shield, Cpu, Zap, ArrowRight } from 'lucide-react';
+import { Key, Sparkles, Shield, Cpu, Zap, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface ApiPageProps {
   onNavigate?: (route: string) => void;
@@ -28,32 +28,48 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 space-y-12 sm:space-y-16 overflow-hidden">
+      {/* Back button */}
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          onClick={() => (onNavigate ? onNavigate('home') : null)}
+        >
+          Back to Home
+        </Button>
+      </div>
+
       {/* Hero Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-card-elevated via-card to-card border border-brand-cyan/20 shadow-2xl">
-        <div className="space-y-4 max-w-2xl">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 sm:gap-8 p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-card to-card border border-brand-cyan/20 shadow-2xl">
+        <div className="space-y-3 sm:space-y-4 max-w-2xl">
           <Badge variant="gradient" size="md">REST API v1</Badge>
-          <h1 className="text-3xl sm:text-5xl font-black text-text-primary tracking-tight">
-            Developer API &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink">SDK Reference</span>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-text-primary tracking-tight leading-tight">
+            Developer API &amp;{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink">
+              SDK Reference
+            </span>
           </h1>
-          <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-            Integrate high-speed AI background removal directly into your e-commerce platform, mobile apps, or backend pipelines with simple HTTP requests.
+          <p className="text-xs sm:text-base text-text-secondary leading-relaxed">
+            Integrate studio-grade AI background removal into your e-commerce store, mobile app, or backend pipeline with standard HTTP requests.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
           <Button
             variant="gradient"
             size="lg"
             leftIcon={<Key className="w-4 h-4" />}
             onClick={() => (onNavigate ? onNavigate('dashboard') : null)}
-            className="shadow-xl shadow-brand-blue/20"
+            className="shadow-xl shadow-brand-blue/20 w-full sm:w-auto justify-center"
           >
             Get API Key
           </Button>
           <Button
             variant="outline"
             size="lg"
+            className="w-full sm:w-auto justify-center"
             onClick={() => {
               const el = document.getElementById('playground-section');
               el?.scrollIntoView({ behavior: 'smooth' });
@@ -65,10 +81,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Interactive API Explorer Sandbox */}
-      <div id="playground-section" className="space-y-6">
+      <div id="playground-section" className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-2.5">
-          <Cpu className="w-6 h-6 text-brand-cyan" />
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">Interactive API Playground</h2>
+          <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-brand-cyan shrink-0" />
+          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Interactive API Playground</h2>
         </div>
         <p className="text-xs sm:text-sm text-text-secondary">
           Test real-time background removal payloads right from your browser.
@@ -78,10 +94,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Multi-Language Code Snippets */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-2.5">
-          <Sparkles className="w-6 h-6 text-brand-pink" />
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">Code Examples &amp; Quickstarts</h2>
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-brand-pink shrink-0" />
+          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Code Examples &amp; Quickstarts</h2>
         </div>
         <p className="text-xs sm:text-sm text-text-secondary">
           Copy production-ready integration snippets in your favorite language or framework.
@@ -91,10 +107,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* REST Endpoints Catalog */}
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div className="flex items-center gap-2.5">
-          <Zap className="w-6 h-6 text-brand-cyan" />
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">API Endpoints Specification</h2>
+          <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-brand-cyan shrink-0" />
+          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">API Endpoints Specification</h2>
         </div>
 
         <div className="space-y-6">
@@ -141,14 +157,28 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Error Reference Table */}
-      <div className="space-y-6">
+      {/* Error Reference: Mobile Cards & Desktop Table */}
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-2.5">
-          <Shield className="w-6 h-6 text-status-warning" />
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">Status &amp; Error Codes</h2>
+          <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-status-warning shrink-0" />
+          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Status &amp; Error Codes</h2>
         </div>
 
-        <Card variant="default" className="p-0 overflow-hidden border-border-subtle shadow-xl">
+        {/* Mobile View: Cards */}
+        <div className="block sm:hidden space-y-2.5">
+          {errorCodes.map((e, i) => (
+            <div key={i} className="p-3.5 rounded-xl bg-card-elevated border border-border-subtle space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold text-brand-cyan">{e.code}</span>
+                <span className="text-xs font-semibold text-text-primary">{e.meaning}</span>
+              </div>
+              <p className="text-xs text-text-secondary leading-snug">{e.description}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View: Table */}
+        <Card variant="default" className="hidden sm:block p-0 overflow-hidden border-border-subtle shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-card-elevated text-text-muted border-b border-border-subtle uppercase tracking-wider font-semibold">
@@ -173,16 +203,16 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Rate Limits & Tiers */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-2.5">
-          <Cpu className="w-6 h-6 text-brand-blue" />
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">Rate Limits &amp; Throughput Tiers</h2>
+          <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-brand-blue shrink-0" />
+          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Rate Limits &amp; Throughput Tiers</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {rateLimitTiers.map((t, i) => (
-            <Card key={i} variant="default" className="p-6 space-y-4 border-border-subtle">
-              <h3 className="text-lg font-bold text-text-primary">{t.tier}</h3>
+            <Card key={i} variant="default" className="p-5 sm:p-6 space-y-4 border-border-subtle shadow-md">
+              <h3 className="text-base sm:text-lg font-bold text-text-primary">{t.tier}</h3>
               <div className="space-y-2 text-xs text-text-secondary">
                 <div className="flex justify-between py-1 border-b border-border-subtle">
                   <span className="text-text-muted">Rate Limit:</span>
@@ -203,9 +233,9 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* CTA Footer */}
-      <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-card-elevated via-brand-blue/10 to-card border border-brand-cyan/20 text-center space-y-4">
-        <h3 className="text-2xl sm:text-3xl font-black text-text-primary">Ready to Automate Background Removals?</h3>
-        <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto">
+      <div className="p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-brand-blue/10 to-card border border-brand-cyan/20 text-center space-y-4">
+        <h3 className="text-xl sm:text-3xl font-black text-text-primary">Ready to Automate Background Removals?</h3>
+        <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
           Generate an API key in seconds from your dashboard and start processing photos programmatically.
         </p>
         <Button
@@ -213,7 +243,7 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
           size="lg"
           rightIcon={<ArrowRight className="w-4 h-4" />}
           onClick={() => (onNavigate ? onNavigate('dashboard') : null)}
-          className="shadow-xl"
+          className="shadow-xl w-full sm:w-auto justify-center"
         >
           Generate Your Secret Key
         </Button>
