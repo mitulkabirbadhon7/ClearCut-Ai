@@ -77,14 +77,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             >
               Remove Background Now
             </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              leftIcon={<CreditCard className="w-5 h-5 text-brand-cyan" />}
-              onClick={() => (onNavigate ? onNavigate('pricing') : null)}
-            >
-              View Pricing (BDT)
-            </Button>
           </div>
         </div>
 
