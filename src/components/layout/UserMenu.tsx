@@ -36,10 +36,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
       description: 'You have been safely signed out.',
       type: 'info',
     });
+    window.location.hash = '';
+    window.history.pushState(null, '', '/');
     if (onNavigate) {
       onNavigate('home');
-    } else {
-      window.location.hash = '';
     }
   };
 

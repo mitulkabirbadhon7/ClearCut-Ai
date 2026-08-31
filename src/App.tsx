@@ -19,7 +19,15 @@ import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function App() {
-  const [activeRoute, setActiveRoute] = useState<string>('home');
+  const getInitialRoute = (): string => {
+    const hash = window.location.hash.replace('#', '').split('?')[0];
+    if (hash && hash !== '/') return hash;
+    const path = window.location.pathname.replace(/^\//, '').split('?')[0];
+    if (path && path !== '') return path;
+    return 'home';
+  };
+
+  const [activeRoute, setActiveRoute] = useState<string>(getInitialRoute());
   const { activeModal, setActiveModal } = useAppStore();
   const { initializeAuth } = useAuthStore();
 
@@ -28,26 +36,30 @@ export default function App() {
     initializeAuth();
   }, [initializeAuth]);
 
-  // Synchronize route with URL hash for clean address bar state and bookmarking
+  // Synchronize route with URL hash & pathname
   useEffect(() => {
-    const handleHashChange = () => {
-      const fullHash = window.location.hash.replace('#', '') || 'home';
-      const cleanRoute = fullHash.split('?')[0] || 'home';
-      setActiveRoute(cleanRoute);
+    const handleUrlChange = () => {
+      const route = getInitialRoute();
+      setActiveRoute(route);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (window.location.hash) {
-      handleHashChange();
-    }
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, []);
 
   const navigateTo = (route: string) => {
     setActiveRoute(route);
-    window.location.hash = route === 'home' ? '' : route;
+    if (route === 'home') {
+      window.location.hash = '';
+      window.history.pushState(null, '', '/');
+    } else {
+      window.location.hash = route;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
