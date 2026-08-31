@@ -7,7 +7,7 @@ interface ToastMessage {
   type: 'info' | 'success' | 'warning' | 'error';
 }
 
-type ThemeMode = 'dark' | 'light';
+export type ThemeMode = 'dark' | 'light';
 
 interface AppState {
   activeModal: 'auth' | 'pricing' | 'upload' | null;
@@ -20,28 +20,44 @@ interface AppState {
   setTheme: (theme: ThemeMode) => void;
 }
 
-const getInitialTheme = (): ThemeMode => {
-  const saved = localStorage.getItem('clearcut_theme') as ThemeMode | null;
-  if (saved === 'light' || saved === 'dark') {
-    return saved;
-  }
-  return 'dark'; // default theme
-};
-
-const applyThemeToDOM = (theme: ThemeMode) => {
+export const applyThemeToDOM = (theme: ThemeMode) => {
+  if (typeof document === 'undefined') return;
   const root = document.documentElement;
+  const body = document.body;
+
   if (theme === 'light') {
     root.classList.remove('dark');
     root.classList.add('light');
+    root.setAttribute('data-theme', 'light');
+    if (body) {
+      body.classList.remove('dark');
+      body.classList.add('light');
+    }
   } else {
     root.classList.remove('light');
     root.classList.add('dark');
+    root.setAttribute('data-theme', 'dark');
+    if (body) {
+      body.classList.remove('light');
+      body.classList.add('dark');
+    }
   }
   localStorage.setItem('clearcut_theme', theme);
 };
 
+const getInitialTheme = (): ThemeMode => {
+  if (typeof localStorage === 'undefined') return 'dark';
+  const saved = localStorage.getItem('clearcut_theme') as ThemeMode | null;
+  if (saved === 'light' || saved === 'dark') {
+    return saved;
+  }
+  return 'dark';
+};
+
 const initialTheme = getInitialTheme();
-applyThemeToDOM(initialTheme);
+if (typeof document !== 'undefined') {
+  applyThemeToDOM(initialTheme);
+}
 
 export const useAppStore = create<AppState>((set, get) => ({
   activeModal: null,

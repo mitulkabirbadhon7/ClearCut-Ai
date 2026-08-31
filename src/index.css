@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .dark {
+  :root,
+  [data-theme='dark'],
+  html.dark {
     color-scheme: dark;
     --color-background: #020617;
     --color-card: #0F172A;
@@ -17,7 +19,9 @@
     --color-border-highlight: #475569;
   }
 
-  .light {
+  [data-theme='light'],
+  html.light,
+  body.light {
     color-scheme: light;
     --color-background: #F8FAFC;
     --color-card: #FFFFFF;
@@ -32,8 +36,8 @@
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
+    background-color: var(--color-background) !important;
+    color: var(--color-text-primary) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
     transition: background-color 0.25s ease, color 0.25s ease;

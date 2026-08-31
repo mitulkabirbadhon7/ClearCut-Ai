@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/lib/supabase';
 import {
   ShieldAlert,
   Users,
@@ -21,6 +22,7 @@ import {
   Percent,
   Lock,
   UserCheck,
+  UserPlus,
 } from 'lucide-react';
 
 interface AdminPageProps {
@@ -55,7 +57,7 @@ interface PromoCode {
   isActive: boolean;
 }
 
-const INITIAL_USERS: PlatformUser[] = [
+const DEFAULT_USERS: PlatformUser[] = [
   {
     id: 'usr_master',
     email: 'admin@clearcut.ai',
@@ -64,24 +66,6 @@ const INITIAL_USERS: PlatformUser[] = [
     purchasedCredits: 5000,
     role: 'admin',
     createdAt: '2026-08-01',
-  },
-  {
-    id: 'usr_002',
-    email: 'creator.studio@gmail.com',
-    fullName: 'Rahim Chowdhury',
-    freeCredits: 5,
-    purchasedCredits: 300,
-    role: 'user',
-    createdAt: '2026-08-28',
-  },
-  {
-    id: 'usr_003',
-    email: 'ecommerce.dhaka@yahoo.com',
-    fullName: 'Tanvir Ahmed',
-    freeCredits: 3,
-    purchasedCredits: 100,
-    role: 'user',
-    createdAt: '2026-08-29',
   },
 ];
 
@@ -146,10 +130,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const { addToast } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'discounts' | 'guide'>('overview');
-  const [usersList, setUsersList] = useState<PlatformUser[]>(INITIAL_USERS);
+  const [usersList, setUsersList] = useState<PlatformUser[]>(DEFAULT_USERS);
   const [productsList, setProductsList] = useState<AdminProduct[]>(INITIAL_PRODUCTS);
   const [promosList, setPromosList] = useState<PromoCode[]>(INITIAL_PROMOS);
   const [searchQuery, setSearchQuery] = useState('');
+  const [newAdminEmailInput, setNewAdminEmailInput] = useState('');
 
   // Global Discount State
   const [isGlobalSaleActive, setIsGlobalSaleActive] = useState(false);
@@ -167,49 +152,153 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const [newPromoDiscount, setNewPromoDiscount] = useState('20');
   const [isAddingPromo, setIsAddingPromo] = useState(false);
 
-  // Strict Adminship check: Master Admin or approved admin
-  const currentEmail = user?.email || 'admin@clearcut.ai';
-  const isApprovedAdmin =
+  // Fetch real users from Supabase profiles
+  useEffect(() => {
+    const fetchRealUsers = async () => {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*, credits(*)');
+
+        if (!error && data && data.length > 0) {
+          const mapped: PlatformUser[] = data.map((p) => ({
+            id: p.id,
+            email: p.email || 'user@example.com',
+            fullName: p.full_name || p.email?.split('@')[0] || 'User',
+            freeCredits: p.credits?.[0]?.free_daily_remaining ?? 5,
+            purchasedCredits: p.credits?.[0]?.purchased_credits ?? 0,
+            role: (p.role === 'admin' ? 'admin' : 'user') as 'admin' | 'user',
+            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Recent',
+          }));
+
+          // Merge with master admin if not in list
+          if (!mapped.some((u) => u.email === 'admin@clearcut.ai')) {
+            mapped.unshift(DEFAULT_USERS[0]);
+          }
+          setUsersList(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching admin users:', err);
+      }
+    };
+
+    fetchRealUsers();
+  }, []);
+
+  // Strict Single Master Admin Check
+  const currentEmail = user?.email || '';
+  const storedApprovedAdmins = typeof localStorage !== 'undefined' ? localStorage.getItem('approved_admins') || '' : '';
+  
+  const isMasterAdmin =
     currentEmail === 'admin@clearcut.ai' ||
+    currentEmail === 'mitulkabirbadhon7@gmail.com';
+
+  const isApprovedAdmin =
+    isMasterAdmin ||
     user?.user_metadata?.role === 'admin' ||
-    usersList.some((u) => u.email === currentEmail && u.role === 'admin') ||
-    true; // Master fallback
+    storedApprovedAdmins.includes(currentEmail) ||
+    usersList.some((u) => u.email === currentEmail && u.role === 'admin');
 
   if (!isApprovedAdmin) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md p-8 text-center space-y-4">
-          <ShieldAlert className="w-12 h-12 text-status-error mx-auto" />
-          <h2 className="text-xl font-bold text-text-primary">Admin Access Restricted</h2>
-          <p className="text-xs text-text-secondary">
-            Your account ({currentEmail}) is not authorized as an administrator. Please contact the Master Admin for approval.
-          </p>
-          <Button variant="gradient" size="md" onClick={() => (onNavigate ? onNavigate('home') : null)}>
-            Return to Home
+      <div className="min-h-[75vh] flex items-center justify-center p-4">
+        <Card variant="elevated" className="max-w-md p-8 sm:p-10 text-center space-y-5 border-border shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-status-error/15 border border-status-error/30 flex items-center justify-center text-status-error mx-auto">
+            <Lock className="w-7 h-7" />
+          </div>
+          <div className="space-y-1.5">
+            <Badge variant="outline" size="sm">Single-Admin Protected</Badge>
+            <h2 className="text-2xl font-black text-text-primary tracking-tight">Admin Access Restricted</h2>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Your account (<strong className="text-brand-cyan">{currentEmail || 'Anonymous'}</strong>) is not authorized as an administrator. Only the Master Admin can authorize access.
+            </p>
+          </div>
+          <Button
+            variant="gradient"
+            size="md"
+            className="w-full justify-center"
+            onClick={() => (onNavigate ? onNavigate('home') : null)}
+          >
+            Return to Home Studio
           </Button>
         </Card>
       </div>
     );
   }
 
-  const handleToggleAdminRole = (userId: string) => {
+  const handleToggleAdminRole = async (userId: string) => {
+    const targetUser = usersList.find((u) => u.id === userId);
+    if (!targetUser) return;
+    const nextRole = targetUser.role === 'admin' ? 'user' : 'admin';
+
     setUsersList((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const nextRole = u.role === 'admin' ? 'user' : 'admin';
-          addToast({
-            title: nextRole === 'admin' ? 'Admin Access Approved' : 'Admin Access Revoked',
-            description: `${u.email} is now ${nextRole === 'admin' ? 'an Approved Admin' : 'a Standard User'}.`,
-            type: nextRole === 'admin' ? 'success' : 'info',
-          });
-          return { ...u, role: nextRole };
-        }
-        return u;
-      })
+      prev.map((u) => (u.id === userId ? { ...u, role: nextRole } : u))
     );
+
+    // Save in localStorage approved list
+    const currentApproved = (localStorage.getItem('approved_admins') || '').split(',');
+    if (nextRole === 'admin') {
+      if (!currentApproved.includes(targetUser.email)) {
+        currentApproved.push(targetUser.email);
+      }
+    } else {
+      const idx = currentApproved.indexOf(targetUser.email);
+      if (idx > -1) currentApproved.splice(idx, 1);
+    }
+    localStorage.setItem('approved_admins', currentApproved.join(','));
+
+    // Update in Supabase if profile exists
+    if (supabase && targetUser.id !== 'usr_master') {
+      await supabase.from('profiles').update({ role: nextRole }).eq('id', targetUser.id);
+    }
+
+    addToast({
+      title: nextRole === 'admin' ? 'Admin Access Granted' : 'Admin Access Revoked',
+      description: `${targetUser.email} is now ${nextRole === 'admin' ? 'an Approved Admin' : 'a Standard User'}.`,
+      type: nextRole === 'admin' ? 'success' : 'info',
+    });
   };
 
-  const handleAddCredits = (userId: string, amount: number) => {
+  const handleAuthorizeNewEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmailInput.trim()) return;
+
+    const emailToAuth = newAdminEmailInput.trim().toLowerCase();
+
+    // Check if user is in list
+    const existing = usersList.find((u) => u.email.toLowerCase() === emailToAuth);
+    if (existing) {
+      handleToggleAdminRole(existing.id);
+    } else {
+      const newUser: PlatformUser = {
+        id: `usr_${Date.now()}`,
+        email: emailToAuth,
+        fullName: emailToAuth.split('@')[0],
+        freeCredits: 5,
+        purchasedCredits: 100,
+        role: 'admin',
+        createdAt: 'Today',
+      };
+      setUsersList((prev) => [newUser, ...prev]);
+
+      const currentApproved = (localStorage.getItem('approved_admins') || '').split(',');
+      if (!currentApproved.includes(emailToAuth)) {
+        currentApproved.push(emailToAuth);
+        localStorage.setItem('approved_admins', currentApproved.join(','));
+      }
+
+      addToast({
+        title: 'Admin Access Authorized',
+        description: `${emailToAuth} has been granted Admin privileges.`,
+        type: 'success',
+      });
+    }
+
+    setNewAdminEmailInput('');
+  };
+
+  const handleAddCredits = async (userId: string, amount: number) => {
     setUsersList((prev) =>
       prev.map((u) =>
         u.id === userId
@@ -217,6 +306,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           : u
       )
     );
+
+    if (supabase && userId !== 'usr_master') {
+      await supabase.rpc('add_user_credits_atomic', { p_user_id: userId, p_amount: amount });
+    }
+
     addToast({
       title: 'Credits Added',
       description: `Added +${amount} credits to user account.`,
@@ -407,18 +501,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      {/* Tab Panels */}
+      {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-8 animate-in fade-in-50">
-          {/* Key Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-brand-cyan">
               <div className="flex justify-between items-center text-xs text-text-muted">
                 <span className="uppercase font-bold tracking-wider">Total Users</span>
                 <Users className="w-4 h-4 text-brand-cyan" />
               </div>
-              <div className="text-3xl font-black text-text-primary">1,482</div>
-              <p className="text-[11px] text-status-success">+28 today</p>
+              <div className="text-3xl font-black text-text-primary">{usersList.length}</div>
+              <p className="text-[11px] text-status-success">Registered Accounts</p>
             </Card>
 
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-[#E2136E]">
@@ -453,14 +546,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* Users & Admin Approval Tab */}
+      {/* Users & Admin Authorization Tab */}
       {activeTab === 'users' && (
         <div className="space-y-6 animate-in fade-in-50">
+          {/* Quick Authorize Email Box */}
+          <Card variant="default" className="p-5 sm:p-6 border-brand-cyan/30">
+            <h3 className="text-sm font-bold text-text-primary mb-1 flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-brand-cyan" />
+              <span>Authorize New Admin Account by Email</span>
+            </h3>
+            <p className="text-xs text-text-muted mb-4">
+              Enter any user or colleague&apos;s email address to instantly grant them Admin permissions.
+            </p>
+            <form onSubmit={handleAuthorizeNewEmail} className="flex flex-col sm:flex-row gap-3">
+              <Input
+                placeholder="colleague@gmail.com"
+                value={newAdminEmailInput}
+                onChange={(e) => setNewAdminEmailInput(e.target.value)}
+                className="flex-1"
+                required
+              />
+              <Button variant="gradient" size="md" type="submit" leftIcon={<UserCheck className="w-4 h-4" />}>
+                Authorize Admin
+              </Button>
+            </form>
+          </Card>
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-text-primary">Admin Access & User Approvals</h3>
+              <h3 className="text-lg font-bold text-text-primary">Registered Accounts &amp; Admin Approvals</h3>
               <p className="text-xs text-text-muted">
-                Only approved emails can access this Admin Panel. Click &quot;Make Admin&quot; to authorize an account.
+                Standard accounts can only access user features unless you click &quot;Approve Admin&quot;.
               </p>
             </div>
 
@@ -543,7 +659,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* Products & Pricing Manager Tab */}
+      {/* Products & Pricing Catalog Tab */}
       {activeTab === 'products' && (
         <div className="space-y-6 animate-in fade-in-50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -659,7 +775,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
       {/* Discounts & Promo Codes Tab */}
       {activeTab === 'discounts' && (
         <div className="space-y-8 animate-in fade-in-50">
-          {/* Global Platform Flash Sale Switch */}
           <Card variant="default" className="p-6 sm:p-8 space-y-4 border-brand-pink/30">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-subtle pb-4">
               <div className="space-y-1">
@@ -782,27 +897,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           <Card variant="default" className="p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-2.5 text-brand-cyan">
               <Lock className="w-5 h-5" />
-              <h3 className="text-lg font-bold text-text-primary">1. Single Master Admin Architecture</h3>
+              <h3 className="text-lg font-bold text-text-primary">1. Single Master Admin Security</h3>
             </div>
             <div className="space-y-3 text-xs sm:text-sm text-text-secondary leading-relaxed">
               <p>
-                By default, only your authorized master account has access to the Admin Panel. No external user can access or view admin controls unless you explicitly click <strong>&quot;Approve Admin&quot;</strong> on their email in the <strong>Admin Access & Users</strong> tab.
-              </p>
-            </div>
-          </Card>
-
-          <Card variant="default" className="p-6 sm:p-8 space-y-4">
-            <div className="flex items-center gap-2.5 text-brand-pink">
-              <Tag className="w-5 h-5" />
-              <h3 className="text-lg font-bold text-text-primary">2. Managing Discounts &amp; New Products</h3>
-            </div>
-            <div className="space-y-3 text-xs sm:text-sm text-text-secondary leading-relaxed">
-              <p>
-                - <strong>Edit Prices:</strong> Click &quot;Edit Price&quot; in the Products tab to change the BDT price of any plan instantly.
+                - <strong>Single Master Admin:</strong> Only your email has default access. Any newly registered account is created as a <code>Standard User</code>.
                 <br />
-                - <strong>Add Products:</strong> Click &quot;Add New Product&quot; to create agency packs or customized credit tiers.
-                <br />
-                - <strong>Flash Sales:</strong> Toggle &quot;Activate Flash Sale&quot; in the Discounts tab to apply an instant percentage discount site-wide.
+                - <strong>To Authorize an Admin:</strong> In the <em>Admin Access &amp; Users</em> tab, enter their email in <em>&quot;Authorize New Admin Account by Email&quot;</em> and click <strong>Authorize Admin</strong>.
               </p>
             </div>
           </Card>
