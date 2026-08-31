@@ -10,10 +10,10 @@ Last Updated: 2026-08-31
 
 CURRENT STATUS:
 --------------------------------------------------------------------------------
-Current Phase: PHASE 4 - Supabase Authentication
-Current Task : Supabase Auth Integration, OAuth, Session Management & Protected Routes
+Current Phase: PHASE 5 - Database Foundation & Row Level Security (RLS)
+Current Task : PostgreSQL Schema Migration, Triggers, RLS Policies & Query Layer
 Phase Status : COMPLETED
-Next Action  : Await user approval -> "Start Phase 5" (Database Foundation & RLS)
+Next Action  : Await user approval -> "Start Phase 6" (Client Image Upload Engine)
 
 ================================================================================
 PHASE EXECUTION ROADMAP
@@ -23,9 +23,9 @@ PHASE EXECUTION ROADMAP
 [x] PHASE 2 : Design System + UI Foundation & Layout Architecture
 [x] PHASE 3 : High-Conversion Landing Page & Interactive Demos
 [x] PHASE 4 : Supabase Authentication (Email/Pass, Google OAuth, Session Management)
-[ ] PHASE 5 : PostgreSQL Database Foundation & Row Level Security (RLS)
-
+[x] PHASE 5 : PostgreSQL Database Foundation & Row Level Security (RLS)
 [ ] PHASE 6 : Client Image Upload Engine & Validation Pipeline
+
 [ ] PHASE 7 : n8n Cloud Automation Engine & AI Background Removal Integration
 [ ] PHASE 8 : Interactive Result Engine, Checkerboard Preview & Processing History
 [ ] PHASE 9 : User Dashboard & Processing Analytics
@@ -273,4 +273,39 @@ Files Created/Modified:
 
 Next Action:
 - Phase 5: PostgreSQL Database Foundation & Row Level Security (RLS migration SQL scripts, profiles trigger, credits ledger, jobs table, plans schema, transactions table).
+--------------------------------------------------------------------------------
+[2026-08-31] - PHASE 5: PostgreSQL Database Foundation & Row Level Security (RLS)
+--------------------------------------------------------------------------------
+Status: COMPLETED
+Objective: Create complete PostgreSQL database architecture on Supabase with normalized tables (profiles, credits, processing_jobs, plans, transactions, subscriptions, api_keys, api_usage, webhook_events, system_logs), automatic user onboarding trigger, atomic credit deduction function, bKash credit addition function, strict Row Level Security (RLS) policies, and frontend query hooks.
+
+Tasks Completed:
+1. Created `feature/database-foundation` branch.
+2. Built full SQL schema migration file `supabase/migrations/20260831000000_snapcut_initial_schema.sql` containing:
+   - 10 normalized tables with UUIDs, timestamps, and check constraints (`free_daily_remaining >= 0`, `amount_bdt >= 0`).
+   - Automated `on_auth_user_created` trigger provisioning `profiles` and 5 free credits wallet.
+   - Atomic `deduct_user_credit(user_id)` function with row-level locking (`FOR UPDATE`) preventing race conditions.
+   - Atomic `add_user_credits_atomic()` function for idempotent bKash transaction confirmation.
+   - Default seed data for Free, Pro Monthly (৳499), and 100 Credit Pack (৳299).
+   - Strict Row Level Security (RLS) policies enforcing `auth.uid() = user_id`.
+3. Built client database query layer in `src/lib/database.ts` (`fetchUserCredits`, `fetchUserJobs`, `fetchPricingPlans`, `fetchUserTransactions`, `fetchUserProfile`).
+4. Built React hooks with TanStack Query caching:
+   - `src/hooks/useUserCredits.ts`
+   - `src/hooks/usePricingPlans.ts`
+   - `src/hooks/useProcessingHistory.ts`
+5. Updated `docs/DATABASE.md` with step-by-step SQL migration instructions.
+6. Verified production build (`npm run build`) -> PASS (0 errors, 11.43s).
+7. Merged into `develop` and `main`, pushed to GitHub.
+
+Files Created/Modified:
+- [NEW] supabase/migrations/20260831000000_snapcut_initial_schema.sql
+- [NEW] src/lib/database.ts
+- [NEW] src/hooks/useUserCredits.ts
+- [NEW] src/hooks/usePricingPlans.ts
+- [NEW] src/hooks/useProcessingHistory.ts
+- [MODIFY] docs/DATABASE.md
+- [MODIFY] PROJECT_TRACKER.txt
+
+Next Action:
+- Phase 6: Client Image Upload Engine & Validation Pipeline (Cloudinary unsigned/signed direct ephemeral upload, client format/size validation, and progress tracking).
 ================================================================================

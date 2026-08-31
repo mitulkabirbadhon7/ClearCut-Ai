@@ -3,6 +3,15 @@
 ## 1. Database Overview
 SnapCut AI utilizes **Supabase PostgreSQL** as its primary relational datastore. The schema is normalized, indexed for high-volume lookup, and secured with **Row Level Security (RLS)**.
 
+### Migration File Location:
+- [`supabase/migrations/20260831000000_snapcut_initial_schema.sql`](file:///d:/Development/New%20folder/Remove_BG/supabase/migrations/20260831000000_snapcut_initial_schema.sql)
+
+### How to Run Migration in Supabase:
+1. Open your project on [https://supabase.com/dashboard](https://supabase.com/dashboard).
+2. Go to **SQL Editor** from the left navigation.
+3. Click **New Query**, paste the contents of `20260831000000_snapcut_initial_schema.sql`, and click **Run**.
+4. All tables, check constraints, automatic triggers, atomic credit functions, and RLS policies will be created instantly.
+
 ---
 
 ## 2. Table Schemas & Definitions
