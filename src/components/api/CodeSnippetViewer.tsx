@@ -162,11 +162,11 @@ func main() {
   ];
 
   return (
-    <Card variant="default" className="p-0 overflow-hidden border-border-subtle shadow-xl w-full">
+    <Card variant="default" className="p-0 overflow-hidden border-border-subtle shadow-xl w-full max-w-full min-w-0">
       {/* Tab Switcher Header */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 sm:px-4 sm:py-2.5 bg-card-elevated border-b border-border-subtle">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 sm:px-4 sm:py-2.5 bg-card-elevated border-b border-border-subtle w-full max-w-full min-w-0">
         {/* Horizontal scrollable language tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full sm:w-auto min-w-0">
           <div className="hidden sm:flex items-center text-text-muted mr-1.5 pl-1">
             <Terminal className="w-3.5 h-3.5" />
           </div>
@@ -197,8 +197,8 @@ func main() {
       </div>
 
       {/* Code Viewer Body */}
-      <div className="relative bg-[#0a0f1d] overflow-x-auto">
-        <pre className="p-4 sm:p-5 font-mono text-[11px] sm:text-xs text-text-secondary leading-relaxed selection:bg-brand-cyan/20 overflow-x-auto">
+      <div className="relative bg-[#0a0f1d] overflow-x-auto w-full max-w-full min-w-0">
+        <pre className="p-4 sm:p-5 font-mono text-[11px] sm:text-xs text-text-secondary leading-relaxed selection:bg-brand-cyan/20 overflow-x-auto w-full max-w-full min-w-0 block">
           <code>{snippets[activeLang]}</code>
         </pre>
       </div>

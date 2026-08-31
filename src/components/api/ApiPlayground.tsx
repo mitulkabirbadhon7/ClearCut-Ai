@@ -77,11 +77,11 @@ export const ApiPlayground: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 w-full overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="space-y-6 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-full min-w-0">
         {/* Left Column: Request Builder */}
-        <div className="lg:col-span-6 space-y-4">
-          <Card variant="default" className="p-4 sm:p-6 space-y-5 border-border-subtle shadow-md">
+        <div className="lg:col-span-6 space-y-4 w-full max-w-full min-w-0">
+          <Card variant="default" className="p-4 sm:p-6 space-y-5 border-border-subtle shadow-md w-full max-w-full min-w-0">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2">
                 <Badge variant="gradient" size="sm">POST</Badge>
@@ -101,7 +101,7 @@ export const ApiPlayground: React.FC = () => {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="sc_live_..."
-                className="font-mono text-xs"
+                className="font-mono text-xs w-full"
               />
             </div>
 
@@ -112,7 +112,7 @@ export const ApiPlayground: React.FC = () => {
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://your-domain.com/photo.jpg"
-                className="font-mono text-xs"
+                className="font-mono text-xs w-full"
               />
 
               {/* Sample Shortcuts */}
@@ -175,10 +175,10 @@ export const ApiPlayground: React.FC = () => {
         </div>
 
         {/* Right Column: Response Inspector */}
-        <div className="lg:col-span-6 space-y-4">
-          <Card variant="default" className="p-0 overflow-hidden border-border-subtle h-full flex flex-col justify-between shadow-xl">
+        <div className="lg:col-span-6 space-y-4 w-full max-w-full min-w-0">
+          <Card variant="default" className="p-0 overflow-hidden border-border-subtle h-full flex flex-col justify-between shadow-xl w-full max-w-full min-w-0">
             {/* Response Status Header */}
-            <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-card-elevated border-b border-border-subtle">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-card-elevated border-b border-border-subtle w-full max-w-full min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-text-primary">Response:</span>
                 {statusCode ? (
@@ -211,14 +211,14 @@ export const ApiPlayground: React.FC = () => {
             </div>
 
             {/* Response Body Viewer */}
-            <div className="p-4 sm:p-5 flex-1 bg-[#0a0f1d] overflow-x-auto min-h-[180px] sm:min-h-[220px]">
+            <div className="p-4 sm:p-5 flex-1 bg-[#0a0f1d] overflow-x-auto min-h-[180px] sm:min-h-[220px] w-full max-w-full min-w-0">
               {isLoading ? (
                 <div className="h-full flex flex-col items-center justify-center space-y-3 py-10 text-center">
                   <div className="w-7 h-7 rounded-full border-2 border-brand-cyan border-t-transparent animate-spin mx-auto" />
                   <p className="text-xs text-text-muted">Processing cutout via AI gateway...</p>
                 </div>
               ) : response ? (
-                <pre className="font-mono text-[11px] sm:text-xs text-brand-cyan leading-relaxed overflow-x-auto">
+                <pre className="font-mono text-[11px] sm:text-xs text-brand-cyan leading-relaxed overflow-x-auto w-full max-w-full min-w-0 block">
                   <code>{JSON.stringify(response, null, 2)}</code>
                 </pre>
               ) : (
@@ -231,7 +231,7 @@ export const ApiPlayground: React.FC = () => {
 
             {/* Quick Preview Thumbnail */}
             {response?.processed_image_url && (
-              <div className="p-3.5 bg-card-elevated border-t border-border-subtle flex items-center gap-3">
+              <div className="p-3.5 bg-card-elevated border-t border-border-subtle flex items-center gap-3 w-full max-w-full min-w-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-checkerboard border border-border-subtle overflow-hidden flex items-center justify-center shrink-0">
                   <img src={response.processed_image_url} alt="Result" className="max-h-full max-w-full object-contain" />
                 </div>

@@ -28,7 +28,7 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 space-y-12 sm:space-y-16 overflow-hidden">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-16 space-y-10 sm:space-y-16 overflow-x-hidden min-w-0">
       {/* Back button */}
       <div>
         <Button
@@ -42,10 +42,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Hero Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 sm:gap-8 p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-card to-card border border-brand-cyan/20 shadow-2xl">
-        <div className="space-y-3 sm:space-y-4 max-w-2xl">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 sm:gap-8 p-5 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-card to-card border border-brand-cyan/20 shadow-2xl w-full max-w-full min-w-0">
+        <div className="space-y-3 sm:space-y-4 max-w-2xl min-w-0">
           <Badge variant="gradient" size="md">REST API v1</Badge>
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-text-primary tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-text-primary tracking-tight leading-tight break-words">
             Developer API &amp;{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink">
               SDK Reference
@@ -81,10 +81,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Interactive API Explorer Sandbox */}
-      <div id="playground-section" className="space-y-4 sm:space-y-6">
+      <div id="playground-section" className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
         <div className="flex items-center gap-2.5">
           <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-brand-cyan shrink-0" />
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Interactive API Playground</h2>
+          <h2 className="text-lg sm:text-2xl font-black text-text-primary tracking-tight">Interactive API Playground</h2>
         </div>
         <p className="text-xs sm:text-sm text-text-secondary">
           Test real-time background removal payloads right from your browser.
@@ -94,10 +94,10 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Multi-Language Code Snippets */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
         <div className="flex items-center gap-2.5">
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-brand-pink shrink-0" />
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Code Examples &amp; Quickstarts</h2>
+          <h2 className="text-lg sm:text-2xl font-black text-text-primary tracking-tight">Code Examples &amp; Quickstarts</h2>
         </div>
         <p className="text-xs sm:text-sm text-text-secondary">
           Copy production-ready integration snippets in your favorite language or framework.
@@ -107,13 +107,13 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* REST Endpoints Catalog */}
-      <div className="space-y-6 sm:space-y-8">
+      <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-0">
         <div className="flex items-center gap-2.5">
           <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-brand-cyan shrink-0" />
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">API Endpoints Specification</h2>
+          <h2 className="text-lg sm:text-2xl font-black text-text-primary tracking-tight">API Endpoints Specification</h2>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 w-full max-w-full min-w-0">
           <EndpointCard
             method="POST"
             path="/v1/remove-background"
@@ -158,16 +158,16 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Error Reference: Mobile Cards & Desktop Table */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
         <div className="flex items-center gap-2.5">
           <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-status-warning shrink-0" />
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Status &amp; Error Codes</h2>
+          <h2 className="text-lg sm:text-2xl font-black text-text-primary tracking-tight">Status &amp; Error Codes</h2>
         </div>
 
         {/* Mobile View: Cards */}
-        <div className="block sm:hidden space-y-2.5">
+        <div className="block sm:hidden space-y-2.5 w-full max-w-full min-w-0">
           {errorCodes.map((e, i) => (
-            <div key={i} className="p-3.5 rounded-xl bg-card-elevated border border-border-subtle space-y-1">
+            <div key={i} className="p-3.5 rounded-xl bg-card-elevated border border-border-subtle space-y-1 w-full max-w-full min-w-0">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-bold text-brand-cyan">{e.code}</span>
                 <span className="text-xs font-semibold text-text-primary">{e.meaning}</span>
@@ -178,8 +178,8 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
         </div>
 
         {/* Desktop View: Table */}
-        <Card variant="default" className="hidden sm:block p-0 overflow-hidden border-border-subtle shadow-xl">
-          <div className="overflow-x-auto">
+        <Card variant="default" className="hidden sm:block p-0 overflow-hidden border-border-subtle shadow-xl w-full max-w-full min-w-0">
+          <div className="overflow-x-auto w-full max-w-full min-w-0">
             <table className="w-full text-left text-xs">
               <thead className="bg-card-elevated text-text-muted border-b border-border-subtle uppercase tracking-wider font-semibold">
                 <tr>
@@ -203,15 +203,15 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Rate Limits & Tiers */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
         <div className="flex items-center gap-2.5">
           <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-brand-blue shrink-0" />
-          <h2 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Rate Limits &amp; Throughput Tiers</h2>
+          <h2 className="text-lg sm:text-2xl font-black text-text-primary tracking-tight">Rate Limits &amp; Throughput Tiers</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full max-w-full min-w-0">
           {rateLimitTiers.map((t, i) => (
-            <Card key={i} variant="default" className="p-5 sm:p-6 space-y-4 border-border-subtle shadow-md">
+            <Card key={i} variant="default" className="p-4 sm:p-6 space-y-4 border-border-subtle shadow-md w-full max-w-full min-w-0">
               <h3 className="text-base sm:text-lg font-bold text-text-primary">{t.tier}</h3>
               <div className="space-y-2 text-xs text-text-secondary">
                 <div className="flex justify-between py-1 border-b border-border-subtle">
@@ -233,8 +233,8 @@ export const ApiPage: React.FC<ApiPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* CTA Footer */}
-      <div className="p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-brand-blue/10 to-card border border-brand-cyan/20 text-center space-y-4">
-        <h3 className="text-xl sm:text-3xl font-black text-text-primary">Ready to Automate Background Removals?</h3>
+      <div className="p-5 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card-elevated via-brand-blue/10 to-card border border-brand-cyan/20 text-center space-y-4 w-full max-w-full min-w-0">
+        <h3 className="text-lg sm:text-3xl font-black text-text-primary">Ready to Automate Background Removals?</h3>
         <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
           Generate an API key in seconds from your dashboard and start processing photos programmatically.
         </p>
