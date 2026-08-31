@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Mail, Lock, User, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
@@ -24,7 +24,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -34,6 +37,29 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    const emailTrimmed = email.trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailTrimmed)) {
+      setErrorMsg('Please enter a valid email address (e.g. name@gmail.com).');
+      return;
+    }
+
+    if (mode === 'register') {
+      if (!fullName.trim()) {
+        setErrorMsg('Please enter your full name.');
+        return;
+      }
+      if (password.length < 6) {
+        setErrorMsg('Password must be at least 6 characters long.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setErrorMsg('Passwords do not match. Please ensure both passwords are identical.');
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -41,8 +67,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
         setTimeout(() => {
           setIsLoading(false);
           addToast({
-            title: mode === 'login' ? 'Signed In (Demo)' : 'Account Created (Demo)',
-            description: 'Supabase credentials pending in .env file. Working in demo mode.',
+            title: mode === 'register' ? 'Account Created (Demo)' : 'Signed In (Demo)',
+            description: 'Working in demo mode.',
             type: 'info',
           });
           if (onNavigate) onNavigate('dashboard');
@@ -51,7 +77,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
       }
 
       if (mode === 'login') {
-        await signInWithEmail(email, password);
+        await signInWithEmail(emailTrimmed, password);
         await initializeAuth();
         addToast({
           title: 'Sign In Successful',
@@ -60,19 +86,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
         });
         if (onNavigate) onNavigate('dashboard');
       } else if (mode === 'register') {
-        await signUpWithEmail(email, password, fullName);
+        await signUpWithEmail(emailTrimmed, password, fullName.trim());
         await initializeAuth();
         addToast({
-          title: 'Account Created',
-          description: 'Please check your email to verify your account.',
+          title: 'Account Created Successfully!',
+          description: 'Welcome to ClearCut AI! 5 Free Daily Credits added to your account.',
           type: 'success',
         });
         if (onNavigate) onNavigate('dashboard');
       } else {
-        await resetPasswordForEmail(email);
+        await resetPasswordForEmail(emailTrimmed);
         addToast({
           title: 'Password Reset Sent',
-          description: `Recovery instructions sent to ${email}`,
+          description: `Recovery instructions sent to ${emailTrimmed}`,
           type: 'info',
         });
         setMode('login');
@@ -186,7 +212,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
               {mode === 'register' && (
                 <Input
                   label="Full Name"
-                  placeholder="e.g. Mitul Kabir"
+                  placeholder="Enter your full name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   leftIcon={<User className="w-4 h-4" />}
@@ -207,11 +233,43 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
               {mode !== 'forgot' && (
                 <Input
                   label="Password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   leftIcon={<Lock className="w-4 h-4" />}
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-text-muted hover:text-text-primary focus:outline-none"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
+                  required
+                />
+              )}
+
+              {mode === 'register' && (
+                <Input
+                  label="Retype Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  leftIcon={<Lock className="w-4 h-4" />}
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="text-text-muted hover:text-text-primary focus:outline-none"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
                   required
                 />
               )}
@@ -229,7 +287,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
               )}
 
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2 animate-in fade-in-50">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMsg}</span>
                 </div>
@@ -238,7 +296,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
               <Button
                 type="submit"
                 variant="gradient"
-                className="w-full justify-center"
+                className="w-full justify-center shadow-lg shadow-brand-blue/20"
                 size="lg"
                 isLoading={isLoading}
               >
@@ -250,16 +308,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
           </CardContent>
 
           {/* Mode Switchers */}
-          <CardFooter className="p-0 pt-6 justify-center border-t border-border-subtle text-xs text-text-muted">
+          <CardFooter className="p-0 pt-6 justify-center border-t border-border-subtle text-xs text-text-muted flex flex-col gap-2">
             {mode === 'login' && (
               <p>
                 Don&apos;t have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setMode('register')}
+                  onClick={() => {
+                    setMode('register');
+                    setErrorMsg(null);
+                  }}
                   className="text-brand-cyan font-bold hover:underline ml-1"
                 >
-                  Sign Up Free
+                  Register Free
                 </button>
               </p>
             )}
@@ -269,7 +330,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
                 Already have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setMode('login')}
+                  onClick={() => {
+                    setMode('login');
+                    setErrorMsg(null);
+                  }}
                   className="text-brand-cyan font-bold hover:underline ml-1"
                 >
                   Sign In
@@ -278,22 +342,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
             )}
 
             {mode === 'forgot' && (
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className="text-brand-cyan font-bold hover:underline"
-              >
-                Return to Sign In
-              </button>
+              <p>
+                Remember your password?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setErrorMsg(null);
+                  }}
+                  className="text-brand-cyan font-bold hover:underline ml-1"
+                >
+                  Back to Sign In
+                </button>
+              </p>
             )}
+
+            <div className="pt-2 text-[11px] text-text-muted flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-status-success" />
+              <span>Protected by Supabase Zero-Trust Security</span>
+            </div>
           </CardFooter>
         </Card>
-
-        {/* Security Trust Indicator */}
-        <div className="text-center text-xs text-text-muted flex items-center justify-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-status-success" />
-          <span>Protected by Supabase Row Level Security (RLS)</span>
-        </div>
       </div>
     </div>
   );

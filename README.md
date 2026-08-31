@@ -125,5 +125,5 @@ npm run dev
 ## 📄 License & Ownership
 
 **Project Owner**: MD Mitul Kabir Badhon  
-**Application**: SnapCut AI  
+**Application**: ClearCut AI  
 **All Rights Reserved.**
