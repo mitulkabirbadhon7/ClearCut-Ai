@@ -36,7 +36,11 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
       description: 'You have been safely signed out.',
       type: 'info',
     });
-    if (onNavigate) onNavigate('home');
+    if (onNavigate) {
+      onNavigate('home');
+    } else {
+      window.location.hash = '';
+    }
   };
 
   const handleMenuItem = (route: string) => {
@@ -84,6 +88,14 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
             >
               <LayoutDashboard className="w-4 h-4 text-brand-cyan" />
               <span>User Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => handleMenuItem('admin')}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
+            >
+              <Sparkles className="w-4 h-4 text-brand-pink" />
+              <span>Admin Panel</span>
             </button>
 
             <button

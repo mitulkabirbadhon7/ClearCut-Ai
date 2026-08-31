@@ -21,6 +21,35 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
+/**
+ * Translates raw Supabase authentication error strings into clear, human-friendly reasons.
+ */
+export function formatAuthError(err: any): string {
+  const message = err?.message?.toLowerCase() || '';
+  if (message.includes('invalid login credentials')) {
+    return 'Incorrect email or password. Please verify your credentials or click "Forgot password".';
+  }
+  if (message.includes('user not found') || message.includes('invalid_grant')) {
+    return 'No account exists with this email address. Please click "Register Free" below to create one.';
+  }
+  if (message.includes('already registered') || message.includes('user already exists') || message.includes('identity already exists')) {
+    return 'An account with this email address already exists. Please sign in instead.';
+  }
+  if (message.includes('email not confirmed')) {
+    return 'Your email has not been verified yet. Please check your inbox for the confirmation link.';
+  }
+  if (message.includes('password') && (message.includes('6 characters') || message.includes('short') || message.includes('least'))) {
+    return 'Password is too short. Please use at least 6 characters.';
+  }
+  if (message.includes('rate limit') || message.includes('too many requests')) {
+    return 'Too many login attempts. Please wait 60 seconds before trying again.';
+  }
+  if (message.includes('valid email') || message.includes('invalid email') || message.includes('unable to validate')) {
+    return 'Please enter a valid email address (e.g. name@gmail.com).';
+  }
+  return err?.message || 'Authentication error. Please check your credentials and try again.';
+}
+
 // --- AUTHENTICATION HELPER METHODS ---
 
 export async function signUpWithEmail(email: string, password: string, fullName?: string) {

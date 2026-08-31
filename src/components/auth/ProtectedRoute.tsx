@@ -14,7 +14,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, onNavi
 
   useEffect(() => {
     if (!isLoading && !user) {
-      // Trigger login modal or redirect
+      if (onNavigate) {
+        onNavigate('home');
+      } else {
+        window.location.hash = '';
+      }
       setActiveModal('auth');
     }
   }, [isLoading, user, setActiveModal, onNavigate]);
@@ -32,6 +36,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, onNavi
         <Skeleton className="h-80 w-full" />
       </div>
     );
+  }
+
+  if (!user) {
+    return null; // Prevents blank render or undefined access when logged out
   }
 
   return <>{children}</>;

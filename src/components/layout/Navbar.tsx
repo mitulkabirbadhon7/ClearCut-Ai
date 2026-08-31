@@ -56,14 +56,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           ))}
           {user && (
-            <button
-              onClick={() => handleLinkClick('dashboard')}
-              className={`text-sm font-medium transition-colors hover:text-brand-cyan ${
-                activeRoute === 'dashboard' ? 'text-brand-cyan font-bold' : 'text-text-secondary'
-              }`}
-            >
-              Dashboard
-            </button>
+            <>
+              <button
+                onClick={() => handleLinkClick('dashboard')}
+                className={`text-sm font-medium transition-colors hover:text-brand-cyan ${
+                  activeRoute === 'dashboard' ? 'text-brand-cyan font-bold' : 'text-text-secondary'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => handleLinkClick('admin')}
+                className={`text-sm font-medium transition-colors hover:text-brand-pink ${
+                  activeRoute === 'admin' ? 'text-brand-pink font-bold' : 'text-text-secondary'
+                }`}
+              >
+                Admin Panel
+              </button>
+            </>
           )}
         </nav>
 
@@ -126,14 +136,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             ))}
             {user && (
-              <button
-                onClick={() => handleLinkClick('dashboard')}
-                className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeRoute === 'dashboard' ? 'text-brand-cyan font-bold bg-card-elevated' : 'text-text-secondary'
-                }`}
-              >
-                User Dashboard
-              </button>
+              <>
+                <button
+                  onClick={() => handleLinkClick('dashboard')}
+                  className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeRoute === 'dashboard' ? 'text-brand-cyan font-bold bg-card-elevated' : 'text-text-secondary'
+                  }`}
+                >
+                  User Dashboard
+                </button>
+                <button
+                  onClick={() => handleLinkClick('admin')}
+                  className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    activeRoute === 'admin' ? 'text-brand-pink font-bold bg-card-elevated' : 'text-text-secondary'
+                  }`}
+                >
+                  Admin Panel
+                </button>
+              </>
             )}
           </div>
 

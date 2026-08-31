@@ -11,6 +11,7 @@ import { ContactPage } from '@/pages/ContactPage';
 import { AuthPage } from '@/pages/AuthPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { AdminPage } from '@/pages/AdminPage';
 import { PaymentCallbackPage } from '@/pages/PaymentCallbackPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AuthModal } from '@/components/auth/AuthModal';
@@ -74,6 +75,12 @@ export default function App() {
         return <AuthPage onNavigate={navigateTo} />;
       case 'payment-callback':
         return <PaymentCallbackPage onNavigate={navigateTo} />;
+      case 'admin':
+        return (
+          <ProtectedRoute onNavigate={navigateTo}>
+            <AdminPage onNavigate={navigateTo} />
+          </ProtectedRoute>
+        );
       case 'dashboard':
         return (
           <ProtectedRoute onNavigate={navigateTo}>

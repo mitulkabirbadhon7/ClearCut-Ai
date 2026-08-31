@@ -6,7 +6,14 @@ import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPasswordForEmail, isSupabaseConfigured } from '@/lib/supabase';
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  resetPasswordForEmail,
+  isSupabaseConfigured,
+  formatAuthError,
+} from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -76,10 +83,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         setMode('login');
       }
     } catch (err: any) {
-      const msg = err?.message || 'Authentication error. Please try again.';
+      const msg = formatAuthError(err);
       setErrorMsg(msg);
       addToast({
-        title: 'Authentication Error',
+        title: 'Authentication Notice',
         description: msg,
         type: 'error',
       });

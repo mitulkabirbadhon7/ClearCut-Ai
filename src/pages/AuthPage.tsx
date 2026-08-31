@@ -12,6 +12,7 @@ import {
   signInWithGoogle,
   resetPasswordForEmail,
   isSupabaseConfigured,
+  formatAuthError,
 } from '@/lib/supabase';
 
 interface AuthPageProps {
@@ -77,10 +78,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
         setMode('login');
       }
     } catch (err: any) {
-      const msg = err?.message || 'An error occurred during authentication.';
+      const msg = formatAuthError(err);
       setErrorMsg(msg);
       addToast({
-        title: 'Authentication Failed',
+        title: 'Authentication Notice',
         description: msg,
         type: 'error',
       });
