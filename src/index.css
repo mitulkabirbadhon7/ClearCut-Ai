@@ -5,7 +5,8 @@
 @layer base {
   :root,
   [data-theme='dark'],
-  html.dark {
+  html.dark,
+  body.dark {
     color-scheme: dark;
     --color-background: #020617;
     --color-card: #0F172A;
@@ -21,12 +22,13 @@
 
   [data-theme='light'],
   html.light,
-  body.light {
+  body.light,
+  :root.light {
     color-scheme: light;
-    --color-background: #F8FAFC;
+    --color-background: #FFFFFF;
     --color-card: #FFFFFF;
-    --color-card-elevated: #F1F5F9;
-    --color-card-hover: #E2E8F0;
+    --color-card-elevated: #F8FAFC;
+    --color-card-hover: #F1F5F9;
     --color-text-primary: #0F172A;
     --color-text-secondary: #334155;
     --color-text-muted: #64748B;
@@ -40,7 +42,7 @@
     color: var(--color-text-primary) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Custom smooth scrollbar */
@@ -74,6 +76,15 @@
       linear-gradient(-45deg, transparent 75%, #1E293B 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  [data-theme='light'] .bg-checkerboard {
+    background-color: #F8FAFC;
+    background-image: 
+      linear-gradient(45deg, #E2E8F0 25%, transparent 25%), 
+      linear-gradient(-45deg, #E2E8F0 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #E2E8F0 75%), 
+      linear-gradient(-45deg, transparent 75%, #E2E8F0 75%);
   }
 
   .text-gradient {
