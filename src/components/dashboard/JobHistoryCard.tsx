@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Download, Clock, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Download, Clock, Zap, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { ProcessingJob } from '@/types';
 
 interface JobHistoryCardProps {
@@ -13,6 +13,7 @@ interface JobHistoryCardProps {
 export const JobHistoryCard: React.FC<JobHistoryCardProps> = ({ job, onPreview }) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isExpired, setIsExpired] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   // Calculate live 24-hour expiration countdown
   useEffect(() => {
@@ -56,16 +57,23 @@ export const JobHistoryCard: React.FC<JobHistoryCardProps> = ({ job, onPreview }
     >
       {/* Thumbnail Preview with Checkerboard */}
       <div className="w-full h-44 rounded-xl bg-checkerboard border border-border-subtle overflow-hidden flex items-center justify-center relative">
-        {job.processed_image_url && !isExpired ? (
+        {job.processed_image_url && !isExpired && !imgError ? (
           <img
             src={job.processed_image_url}
             alt="Processed cutout"
+            onError={() => setImgError(true)}
             className="max-h-full max-w-full object-contain p-2 group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
           />
-        ) : (
+        ) : isExpired || job.status === 'expired' ? (
           <div className="text-center p-4 space-y-2 text-text-muted">
             <AlertCircle className="w-6 h-6 mx-auto text-status-warning" />
             <p className="text-xs">Image Expired (24h Policy)</p>
+          </div>
+        ) : (
+          <div className="text-center p-4 space-y-2 text-text-muted">
+            <Sparkles className="w-6 h-6 mx-auto text-brand-cyan" />
+            <p className="text-xs font-semibold text-text-secondary">HD Cutout Completed</p>
+            <p className="text-[10px] text-text-muted">Click to preview</p>
           </div>
         )}
 

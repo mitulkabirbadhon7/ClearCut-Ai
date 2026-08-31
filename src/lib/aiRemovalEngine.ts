@@ -1,5 +1,6 @@
 import { removeBackground } from '@imgly/background-removal';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { uploadImageToCloudinary, isCloudinaryConfigured } from './cloudinary';
 
 export interface AiRemovalOptions {
   onProgress?: (percent: number, step: string) => void;
@@ -16,9 +17,21 @@ export interface AiRemovalResult {
 }
 
 /**
+ * Converts a Blob to a persistent base64 data URL
+ */
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
  * Executes real AI neural background removal.
  * Uses in-browser deep-learning segmentation (@imgly/background-removal)
- * with monotonic, strictly forward-advancing progress telemetry.
+ * with monotonic, strictly forward-advancing progress telemetry
+ * and persistent 24h Cloudinary / base64 storage.
  */
 export async function executeAiBackgroundRemoval(
   imageSource: File | Blob | string,
@@ -68,11 +81,38 @@ export async function executeAiBackgroundRemoval(
     }
 
     if (options?.onProgress) {
-      options.onProgress(100, 'Rendering transparent PNG...');
+      options.onProgress(98, 'Finalizing transparent PNG cutout...');
     }
 
     const durationMs = Date.now() - startTime;
-    const processedImageUrl = URL.createObjectURL(blob);
+    let processedImageUrl = URL.createObjectURL(blob);
+
+    // Upload to Cloudinary for permanent 24h HTTPS storage if configured
+    if (isCloudinaryConfigured) {
+      try {
+        const cutoutFile = new File([blob], `cutout_${Date.now()}.png`, { type: 'image/png' });
+        const uploadRes = await uploadImageToCloudinary(cutoutFile);
+        if (uploadRes.success && uploadRes.secureUrl) {
+          processedImageUrl = uploadRes.secureUrl;
+        }
+      } catch (uploadErr) {
+        console.warn('Cloudinary cutout sync fallback:', uploadErr);
+      }
+    } else {
+      // Offline fallback: convert small images to base64 data url for persistence
+      try {
+        const dataUrl = await blobToDataUrl(blob);
+        if (dataUrl.length < 2000000) {
+          processedImageUrl = dataUrl;
+        }
+      } catch {
+        // use blob url
+      }
+    }
+
+    if (options?.onProgress) {
+      options.onProgress(100, 'Rendering transparent PNG...');
+    }
 
     // If Supabase is connected and user is logged in, record job in database & deduct credit
     if (isSupabaseConfigured && supabase && options?.userId && options.userId !== 'anonymous') {
