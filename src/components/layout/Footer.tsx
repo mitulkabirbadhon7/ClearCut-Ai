@@ -2,14 +2,28 @@ import React from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Shield, Sparkles, Heart } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onNavigate?: (route: string) => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const handleNav = (route: string, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (onNavigate) {
+      onNavigate(route);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="border-t border-border-subtle bg-card/60 backdrop-blur-md pt-16 pb-12 text-text-secondary text-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-border-subtle">
           {/* Col 1: Brand & Bio */}
           <div className="md:col-span-1 space-y-4">
-            <BrandLogo size="md" />
+            <button onClick={(e) => handleNav('home', e)} className="text-left">
+              <BrandLogo size="md" />
+            </button>
             <p className="text-xs text-text-muted leading-relaxed">
               Fast, simple, and professional AI-powered background removal. Download high-resolution transparent PNG cutouts in seconds.
             </p>
@@ -24,24 +38,29 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Product</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#upload-section" className="hover:text-brand-cyan transition-colors">
+                <button onClick={(e) => handleNav('home', e)} className="hover:text-brand-cyan transition-colors">
                   One-Click Background Removal
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#features" className="hover:text-brand-cyan transition-colors">
-                  HD Transparent PNG Export
-                </a>
+                <button onClick={(e) => handleNav('features', e)} className="hover:text-brand-cyan transition-colors">
+                  Features & AI Edge Precision
+                </button>
               </li>
               <li>
-                <a href="#pricing" className="hover:text-brand-cyan transition-colors">
-                  Pricing Plans & Credit Packs
-                </a>
+                <button onClick={(e) => handleNav('pricing', e)} className="hover:text-brand-cyan transition-colors">
+                  Pricing Plans & Credit Packs (BDT)
+                </button>
               </li>
               <li>
-                <a href="#api" className="hover:text-brand-cyan transition-colors">
+                <button onClick={(e) => handleNav('api', e)} className="hover:text-brand-cyan transition-colors">
                   Developer REST API
-                </a>
+                </button>
+              </li>
+              <li>
+                <button onClick={(e) => handleNav('dashboard', e)} className="hover:text-brand-cyan transition-colors">
+                  User Dashboard & History
+                </button>
               </li>
             </ul>
           </div>
@@ -52,7 +71,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-                <span>Official bKash Payment Gateway</span>
+                <span className="font-semibold text-text-primary">Official bKash Payment Gateway</span>
               </li>
               <li>
                 <span className="text-text-muted">Instant BDT Checkout & Automatic Crediting</span>
@@ -68,27 +87,27 @@ export const Footer: React.FC = () => {
 
           {/* Col 4: Legal */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Legal & Privacy</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Company & Legal</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="/privacy" className="hover:text-brand-cyan transition-colors">
+                <button onClick={(e) => handleNav('privacy', e)} className="hover:text-brand-cyan transition-colors">
                   Privacy Policy (24-Hour Purge)
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/terms" className="hover:text-brand-cyan transition-colors">
+                <button onClick={(e) => handleNav('terms', e)} className="hover:text-brand-cyan transition-colors">
                   Terms of Service
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/contact" className="hover:text-brand-cyan transition-colors">
+                <button onClick={(e) => handleNav('about', e)} className="hover:text-brand-cyan transition-colors">
+                  About SnapCut AI
+                </button>
+              </li>
+              <li>
+                <button onClick={(e) => handleNav('contact', e)} className="hover:text-brand-cyan transition-colors">
                   Contact Support
-                </a>
-              </li>
-              <li>
-                <a href="/security" className="hover:text-brand-cyan transition-colors">
-                  Security Overview
-                </a>
+                </button>
               </li>
             </ul>
           </div>

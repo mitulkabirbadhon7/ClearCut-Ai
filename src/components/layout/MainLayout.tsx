@@ -18,7 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <div className="min-h-screen bg-background text-text-primary flex flex-col justify-between selection:bg-brand-purple selection:text-white">
       <Navbar activeRoute={activeRoute} onNavigate={onNavigate} />
       <main className="flex-1 flex flex-col">{children}</main>
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ToastContainer />
     </div>
   );

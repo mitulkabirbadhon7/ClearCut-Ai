@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { Menu, X, Sparkles, LogIn } from 'lucide-react';
-import { useAppStore } from '@/store/useAppStore';
 
 interface NavbarProps {
   onNavigate?: (route: string) => void;
@@ -14,24 +13,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeRoute = 'home',
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { setActiveModal } = useAppStore();
 
   const navLinks = [
-    { label: 'How It Works', id: 'how-it-works' },
     { label: 'Features', id: 'features' },
     { label: 'Pricing (BDT)', id: 'pricing' },
     { label: 'Developer API', id: 'api' },
+    { label: 'Dashboard', id: 'dashboard' },
   ];
 
   const handleLinkClick = (id: string) => {
     setMobileMenuOpen(false);
     if (onNavigate) {
       onNavigate(id);
-    } else {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
     }
   };
 
@@ -41,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand Logo */}
         <button
           onClick={() => handleLinkClick('home')}
-          className="focus:outline-none focus:ring-2 focus:ring-brand-blue/50 rounded-lg"
+          className="focus:outline-none focus:ring-2 focus:ring-brand-blue/50 rounded-lg text-left"
           aria-label="SnapCut AI Home"
         >
           <BrandLogo size="md" />
@@ -54,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               key={link.id}
               onClick={() => handleLinkClick(link.id)}
               className={`text-sm font-medium transition-colors hover:text-brand-cyan ${
-                activeRoute === link.id ? 'text-brand-cyan font-semibold' : 'text-text-secondary'
+                activeRoute === link.id ? 'text-brand-cyan font-bold' : 'text-text-secondary'
               }`}
             >
               {link.label}
@@ -68,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             variant="ghost"
             size="sm"
             leftIcon={<LogIn className="w-4 h-4" />}
-            onClick={() => setActiveModal('auth')}
+            onClick={() => handleLinkClick('auth')}
           >
             Sign In
           </Button>
@@ -77,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             variant="gradient"
             size="sm"
             leftIcon={<Sparkles className="w-4 h-4" />}
-            onClick={() => handleLinkClick('upload-section')}
+            onClick={() => handleLinkClick('home')}
           >
             Remove Background
           </Button>
@@ -97,11 +90,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-border-subtle bg-card/95 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top-4 duration-200">
           <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => handleLinkClick('home')}
+              className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                activeRoute === 'home' ? 'text-brand-cyan font-bold bg-card-elevated' : 'text-text-secondary'
+              }`}
+            >
+              Home (Cutout Studio)
+            </button>
             {navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link.id)}
-                className="text-left px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-brand-cyan hover:bg-card-elevated transition-colors"
+                className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeRoute === link.id ? 'text-brand-cyan font-bold bg-card-elevated' : 'text-text-secondary'
+                }`}
               >
                 {link.label}
               </button>
@@ -114,10 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="md"
               className="w-full justify-center"
               leftIcon={<LogIn className="w-4 h-4" />}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setActiveModal('auth');
-              }}
+              onClick={() => handleLinkClick('auth')}
             >
               Sign In
             </Button>
@@ -126,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="md"
               className="w-full justify-center"
               leftIcon={<Sparkles className="w-4 h-4" />}
-              onClick={() => handleLinkClick('upload-section')}
+              onClick={() => handleLinkClick('home')}
             >
               Remove Background
             </Button>
