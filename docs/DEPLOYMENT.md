@@ -1,39 +1,53 @@
-# Deployment & DevOps Guide — SnapCut AI
+# Production Deployment & Hosting Guide — ClearCut AI
 
 ## 1. Overview
-SnapCut AI utilizes a modern serverless deployment pipeline combining **GitHub** for version control, **Vercel** for edge hosting, **Supabase** for database hosting, and **n8n Cloud** for backend workflows.
+ClearCut AI is compiled as a static Single-Page Application (SPA) with in-browser neural AI acceleration, connecting to Supabase PostgreSQL, Cloudinary Ephemeral Storage, and n8n Cloud Automation.
 
 ---
 
-## 2. GitHub Workflow & Branching Strategy
+## 2. Production Environment Variables Checklist
 
-```
-main (Production Release)
-  ▲
-  │ (Merge via PR when phase is complete & tested)
-develop (Integration Branch)
-  ▲
-  │ (Merge feature branch upon feature verification)
-feature/<feature-name> (Local Development)
-```
+Configure these in your hosting provider (e.g. Vercel / Netlify / Cloudflare Pages):
 
-### Rules:
-1. Never commit broken code directly to `main` or `develop`.
-2. Always test build locally (`npm run build` / `npm run lint`) prior to pushing.
-3. Every commit must follow semantic conventions (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
+| Variable Name | Required | Description | Example |
+| :--- | :---: | :--- | :--- |
+| `VITE_SUPABASE_URL` | **Yes** | Supabase Project REST Endpoint | `https://asnlfskuuvrthmgvdubc.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | **Yes** | Supabase Public Anonymous Key | `eyJhbGciOi...` |
+| `VITE_CLOUDINARY_CLOUD_NAME` | **Yes** | Cloudinary Cloud Name | `ivwgjnw8` |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | **Yes** | Unsigned Ephemeral Upload Preset | `clearcut_uploads` |
+| `VITE_N8N_WEBHOOK_URL` | Optional | n8n Background Removal Webhook | `https://your-n8n.cloud/webhook/...` |
+| `VITE_N8N_BKASH_CREATE_URL` | Optional | n8n bKash Create Payment Webhook | `https://your-n8n.cloud/webhook/bkash-create-payment` |
+| `VITE_N8N_BKASH_EXECUTE_URL` | Optional | n8n bKash Execute Payment Webhook | `https://your-n8n.cloud/webhook/bkash-execute-payment` |
 
 ---
 
-## 3. Vercel Production Deployment Setup
+## 3. Deploying to Vercel (Recommended)
 
-1. **Connect Repository**: Link the GitHub repository (`SnapCut`) in Vercel.
-2. **Framework Preset**: Vite.
-3. **Build Command**: `npm run build`.
-4. **Output Directory**: `dist`.
-5. **Environment Variables**: Configure all `VITE_` variables in Vercel Project Settings:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_CLOUDINARY_CLOUD_NAME`
-   - `VITE_CLOUDINARY_UPLOAD_PRESET`
-   - `VITE_N8N_WEBHOOK_URL`
-   - `VITE_APP_URL`
+1. Push your code to GitHub (`main` branch).
+2. Go to [vercel.com](https://vercel.com) and click **Add New Project**.
+3. Import the repository `mitulkabirbadhon7/SnapCut`.
+4. Set the Build Settings:
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+5. In **Environment Variables**, add the variables from the table above.
+6. Click **Deploy**!
+
+---
+
+## 4. Deploying to Netlify
+
+1. In [netlify.com](https://netlify.com), click **Add new site** ➔ **Import an existing project**.
+2. Select your GitHub repository.
+3. Configure Build Settings:
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `dist`
+4. Add your Environment Variables under **Site Settings ➔ Environment Variables**.
+5. Deploy Site.
+
+---
+
+## 5. Security & Ephemeral Storage Guarantees
+- **Zero-Trust**: No service role keys or payment gateway secrets are exposed in browser bundles.
+- **24-Hour Purge**: Ephemeral images uploaded to Cloudinary are purged every 24 hours.
+- **RLS Enabled**: All PostgreSQL tables enforce Row Level Security.

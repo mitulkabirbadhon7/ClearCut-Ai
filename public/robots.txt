@@ -1,0 +1,7 @@
+# ClearCut AI Robots.txt
+User-agent: *
+Allow: /
+Disallow: /#dashboard
+Disallow: /#admin
+
+Sitemap: https://clearcut.ai/sitemap.xml
