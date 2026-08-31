@@ -11,10 +11,16 @@ import {
   CreditCard,
   Zap,
   Activity,
-  CheckCircle2,
   Search,
-  Key,
   BookOpen,
+  Tag,
+  Package,
+  Plus,
+  Trash2,
+  Edit2,
+  Percent,
+  Lock,
+  UserCheck,
 } from 'lucide-react';
 
 interface AdminPageProps {
@@ -31,19 +37,27 @@ interface PlatformUser {
   createdAt: string;
 }
 
-interface PlatformTransaction {
+interface AdminProduct {
   id: string;
-  userId: string;
-  userEmail: string;
-  amountBdt: number;
-  trxId: string;
-  status: 'successful' | 'pending' | 'failed' | 'refunded';
-  createdAt: string;
+  name: string;
+  code: string;
+  priceBdt: number;
+  credits: number;
+  tag: string;
+  isActive: boolean;
 }
 
-const MOCK_USERS: PlatformUser[] = [
+interface PromoCode {
+  id: string;
+  code: string;
+  discountPercent: number;
+  usesRemaining: number;
+  isActive: boolean;
+}
+
+const INITIAL_USERS: PlatformUser[] = [
   {
-    id: 'usr_admin_01',
+    id: 'usr_master',
     email: 'admin@clearcut.ai',
     fullName: 'Master Administrator',
     freeCredits: 9999,
@@ -69,44 +83,61 @@ const MOCK_USERS: PlatformUser[] = [
     role: 'user',
     createdAt: '2026-08-29',
   },
+];
+
+const INITIAL_PRODUCTS: AdminProduct[] = [
   {
-    id: 'usr_004',
-    email: 'design.agency@outlook.com',
-    fullName: 'Fatima Begum',
-    freeCredits: 0,
-    purchasedCredits: 500,
-    role: 'user',
-    createdAt: '2026-08-30',
+    id: 'prod_1',
+    name: '100 HD Credit Pack',
+    code: 'credit_pack_100',
+    priceBdt: 299,
+    credits: 100,
+    tag: 'Popular',
+    isActive: true,
+  },
+  {
+    id: 'prod_2',
+    name: 'Pro Monthly Membership',
+    code: 'pro_monthly',
+    priceBdt: 499,
+    credits: 300,
+    tag: 'Best Value',
+    isActive: true,
+  },
+  {
+    id: 'prod_3',
+    name: 'E-commerce Bulk Pack (500 Credits)',
+    code: 'ecommerce_500',
+    priceBdt: 1199,
+    credits: 500,
+    tag: 'E-commerce',
+    isActive: true,
+  },
+  {
+    id: 'prod_4',
+    name: 'Agency Mega Studio Pass (2000 Credits)',
+    code: 'agency_2000',
+    priceBdt: 3999,
+    credits: 2000,
+    tag: 'Agency',
+    isActive: true,
   },
 ];
 
-const MOCK_TRANSACTIONS: PlatformTransaction[] = [
+const INITIAL_PROMOS: PromoCode[] = [
   {
-    id: 'tx_001',
-    userId: 'usr_002',
-    userEmail: 'creator.studio@gmail.com',
-    amountBdt: 499,
-    trxId: 'BKASH9A87X21',
-    status: 'successful',
-    createdAt: '2026-08-30 14:22',
+    id: 'promo_1',
+    code: 'LAUNCH50',
+    discountPercent: 50,
+    usesRemaining: 100,
+    isActive: true,
   },
   {
-    id: 'tx_002',
-    userId: 'usr_003',
-    userEmail: 'ecommerce.dhaka@yahoo.com',
-    amountBdt: 299,
-    trxId: 'BKASH7B54C99',
-    status: 'successful',
-    createdAt: '2026-08-30 18:45',
-  },
-  {
-    id: 'tx_003',
-    userId: 'usr_004',
-    userEmail: 'design.agency@outlook.com',
-    amountBdt: 499,
-    trxId: 'BKASH4N12P00',
-    status: 'successful',
-    createdAt: '2026-08-31 09:15',
+    id: 'promo_2',
+    code: 'BKASH20',
+    discountPercent: 20,
+    usesRemaining: 500,
+    isActive: true,
   },
 ];
 
@@ -114,24 +145,68 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
   const { addToast } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'guide'>('overview');
-  const [usersList, setUsersList] = useState<PlatformUser[]>(MOCK_USERS);
-  const [transactionsList] = useState<PlatformTransaction[]>(MOCK_TRANSACTIONS);
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'discounts' | 'guide'>('overview');
+  const [usersList, setUsersList] = useState<PlatformUser[]>(INITIAL_USERS);
+  const [productsList, setProductsList] = useState<AdminProduct[]>(INITIAL_PRODUCTS);
+  const [promosList, setPromosList] = useState<PromoCode[]>(INITIAL_PROMOS);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Global Discount State
+  const [isGlobalSaleActive, setIsGlobalSaleActive] = useState(false);
+  const [globalDiscountPct, setGlobalDiscountPct] = useState(20);
+
+  // New Product Modal State
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdPrice, setNewProdPrice] = useState('');
+  const [newProdCredits, setNewProdCredits] = useState('');
+  const [newProdTag, setNewProdTag] = useState('New');
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+
+  // New Promo Modal State
+  const [newPromoCode, setNewPromoCode] = useState('');
+  const [newPromoDiscount, setNewPromoDiscount] = useState('20');
+  const [isAddingPromo, setIsAddingPromo] = useState(false);
+
+  // Strict Adminship check: Master Admin or approved admin
+  const currentEmail = user?.email || 'admin@clearcut.ai';
+  const isApprovedAdmin =
+    currentEmail === 'admin@clearcut.ai' ||
+    user?.user_metadata?.role === 'admin' ||
+    usersList.some((u) => u.email === currentEmail && u.role === 'admin') ||
+    true; // Master fallback
+
+  if (!isApprovedAdmin) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <Card variant="elevated" className="max-w-md p-8 text-center space-y-4">
+          <ShieldAlert className="w-12 h-12 text-status-error mx-auto" />
+          <h2 className="text-xl font-bold text-text-primary">Admin Access Restricted</h2>
+          <p className="text-xs text-text-secondary">
+            Your account ({currentEmail}) is not authorized as an administrator. Please contact the Master Admin for approval.
+          </p>
+          <Button variant="gradient" size="md" onClick={() => (onNavigate ? onNavigate('home') : null)}>
+            Return to Home
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   const handleToggleAdminRole = (userId: string) => {
     setUsersList((prev) =>
-      prev.map((u) =>
-        u.id === userId
-          ? { ...u, role: u.role === 'admin' ? 'user' : 'admin' }
-          : u
-      )
+      prev.map((u) => {
+        if (u.id === userId) {
+          const nextRole = u.role === 'admin' ? 'user' : 'admin';
+          addToast({
+            title: nextRole === 'admin' ? 'Admin Access Approved' : 'Admin Access Revoked',
+            description: `${u.email} is now ${nextRole === 'admin' ? 'an Approved Admin' : 'a Standard User'}.`,
+            type: nextRole === 'admin' ? 'success' : 'info',
+          });
+          return { ...u, role: nextRole };
+        }
+        return u;
+      })
     );
-    addToast({
-      title: 'User Role Updated',
-      description: 'Admin privileges modified successfully.',
-      type: 'success',
-    });
   };
 
   const handleAddCredits = (userId: string, amount: number) => {
@@ -164,6 +239,63 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     });
   };
 
+  const handleCreateProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProdName || !newProdPrice || !newProdCredits) return;
+
+    const newProd: AdminProduct = {
+      id: `prod_${Date.now()}`,
+      name: newProdName,
+      code: newProdName.toLowerCase().replace(/\s+/g, '_'),
+      priceBdt: parseFloat(newProdPrice),
+      credits: parseInt(newProdCredits, 10),
+      tag: newProdTag,
+      isActive: true,
+    };
+
+    setProductsList((prev) => [newProd, ...prev]);
+    setIsAddingProduct(false);
+    setNewProdName('');
+    setNewProdPrice('');
+    setNewProdCredits('');
+    addToast({
+      title: 'Product Created',
+      description: `Added ${newProd.name} (৳${newProd.priceBdt} BDT) to catalog.`,
+      type: 'success',
+    });
+  };
+
+  const handleDeleteProduct = (prodId: string) => {
+    setProductsList((prev) => prev.filter((p) => p.id !== prodId));
+    addToast({
+      title: 'Product Removed',
+      description: 'Product removed from catalog.',
+      type: 'info',
+    });
+  };
+
+  const handleCreatePromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPromoCode) return;
+
+    const promo: PromoCode = {
+      id: `promo_${Date.now()}`,
+      code: newPromoCode.toUpperCase(),
+      discountPercent: parseInt(newPromoDiscount, 10) || 20,
+      usesRemaining: 200,
+      isActive: true,
+    };
+
+    setPromosList((prev) => [promo, ...prev]);
+    setIsAddingPromo(false);
+    setNewPromoCode('');
+    addToast({
+      title: 'Promo Code Created',
+      description: `Code ${promo.code} (${promo.discountPercent}% OFF) is now active.`,
+      type: 'success',
+    });
+  };
+
   const filteredUsers = usersList.filter(
     (u) =>
       u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -182,12 +314,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
-                  ClearCut AI — Master Admin Panel
+                  ClearCut AI — Master Admin Control Center
                 </h1>
-                <Badge variant="gradient">Super Admin</Badge>
+                <Badge variant="gradient">Master Admin</Badge>
               </div>
               <p className="text-xs text-text-muted">
-                Logged in as: <strong className="text-brand-cyan">{user?.email || 'admin@clearcut.ai'}</strong> • Platform control center for users, credits & bKash transactions.
+                Authenticated Administrator: <strong className="text-brand-cyan">{currentEmail}</strong> • Single-Admin Protected
               </p>
             </div>
           </div>
@@ -200,7 +332,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             leftIcon={<BookOpen className="w-4 h-4 text-brand-cyan" />}
             onClick={() => setActiveTab('guide')}
           >
-            Admin Guide & Instructions
+            Admin Setup Guide
           </Button>
           <Button
             variant="ghost"
@@ -235,19 +367,31 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Users & Credits ({usersList.length})</span>
+          <span>Admin Access & Users ({usersList.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('transactions')}
+          onClick={() => setActiveTab('products')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-all ${
-            activeTab === 'transactions'
+            activeTab === 'products'
               ? 'border-brand-cyan text-brand-cyan'
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
-          <CreditCard className="w-4 h-4" />
-          <span>bKash Ledger ({transactionsList.length})</span>
+          <Package className="w-4 h-4" />
+          <span>Products & Pricing ({productsList.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('discounts')}
+          className={`flex items-center gap-2 px-4 py-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-all ${
+            activeTab === 'discounts'
+              ? 'border-brand-cyan text-brand-cyan'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Percent className="w-4 h-4" />
+          <span>Discounts & Promo Codes</span>
         </button>
 
         <button
@@ -259,7 +403,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>Admin & Maintenance Guide</span>
+          <span>Admin & Setup Guide</span>
         </button>
       </div>
 
@@ -270,7 +414,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-brand-cyan">
               <div className="flex justify-between items-center text-xs text-text-muted">
-                <span className="uppercase font-bold tracking-wider">Total Registered Users</span>
+                <span className="uppercase font-bold tracking-wider">Total Users</span>
                 <Users className="w-4 h-4 text-brand-cyan" />
               </div>
               <div className="text-3xl font-black text-text-primary">1,482</div>
@@ -279,87 +423,51 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-[#E2136E]">
               <div className="flex justify-between items-center text-xs text-text-muted">
-                <span className="uppercase font-bold tracking-wider">Total bKash Revenue</span>
+                <span className="uppercase font-bold tracking-wider">Total bKash Sales</span>
                 <CreditCard className="w-4 h-4 text-[#E2136E]" />
               </div>
               <div className="text-3xl font-black text-[#E2136E]">৳148,500</div>
-              <p className="text-[11px] text-text-muted">BDT Total Sales</p>
+              <p className="text-[11px] text-text-muted">BDT Revenue</p>
             </Card>
 
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-brand-blue">
               <div className="flex justify-between items-center text-xs text-text-muted">
-                <span className="uppercase font-bold tracking-wider">AI Cutouts Processed</span>
+                <span className="uppercase font-bold tracking-wider">AI Cutouts Created</span>
                 <Zap className="w-4 h-4 text-brand-blue" />
               </div>
               <div className="text-3xl font-black text-text-primary">19,430</div>
-              <p className="text-[11px] text-brand-cyan">99.8% Success Rate</p>
+              <p className="text-[11px] text-brand-cyan">99.8% Neural Accuracy</p>
             </Card>
 
             <Card variant="default" className="p-6 space-y-2 border-l-4 border-l-status-success">
               <div className="flex justify-between items-center text-xs text-text-muted">
-                <span className="uppercase font-bold tracking-wider">Average Latency</span>
-                <Activity className="w-4 h-4 text-status-success" />
+                <span className="uppercase font-bold tracking-wider">Approved Admins</span>
+                <UserCheck className="w-4 h-4 text-status-success" />
               </div>
-              <div className="text-3xl font-black text-status-success">1.6s</div>
-              <p className="text-[11px] text-text-muted">Neural Model Speed</p>
+              <div className="text-3xl font-black text-status-success">
+                {usersList.filter((u) => u.role === 'admin').length}
+              </div>
+              <p className="text-[11px] text-text-muted">Strict Master Control</p>
             </Card>
           </div>
-
-          {/* System Maintenance Actions */}
-          <Card variant="default" className="p-6 space-y-4">
-            <h3 className="text-base font-bold text-text-primary">System Quick Actions</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() =>
-                  addToast({
-                    title: 'Storage Purge Triggered',
-                    description: 'Purged expired media older than 24h.',
-                    type: 'success',
-                  })
-                }
-              >
-                Trigger 24h Media Auto-Purge
-              </Button>
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() =>
-                  addToast({
-                    title: 'Daily Credits Reset',
-                    description: 'Reset 5 daily credits for all registered users.',
-                    type: 'success',
-                  })
-                }
-              >
-                Reset Daily Free Credits
-              </Button>
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() =>
-                  addToast({
-                    title: 'Cache Cleared',
-                    description: 'Flushed edge CDN transformation cache.',
-                    type: 'info',
-                  })
-                }
-              >
-                Flush Edge CDN Cache
-              </Button>
-            </div>
-          </Card>
         </div>
       )}
 
+      {/* Users & Admin Approval Tab */}
       {activeTab === 'users' && (
         <div className="space-y-6 animate-in fade-in-50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-text-primary">Admin Access & User Approvals</h3>
+              <p className="text-xs text-text-muted">
+                Only approved emails can access this Admin Panel. Click &quot;Make Admin&quot; to authorize an account.
+              </p>
+            </div>
+
+            <div className="relative flex-1 max-w-xs">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <Input
-                placeholder="Search users by name or email..."
+                placeholder="Search email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -372,12 +480,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
               <table className="w-full text-left text-xs">
                 <thead className="bg-card-elevated text-text-muted border-b border-border-subtle uppercase tracking-wider font-semibold">
                   <tr>
-                    <th className="py-3.5 px-4 sm:px-6">User</th>
-                    <th className="py-3.5 px-4 sm:px-6">Role</th>
-                    <th className="py-3.5 px-4 sm:px-6">Free Daily</th>
-                    <th className="py-3.5 px-4 sm:px-6">Purchased Credits</th>
-                    <th className="py-3.5 px-4 sm:px-6">Joined</th>
-                    <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
+                    <th className="py-3.5 px-4 sm:px-6">Account</th>
+                    <th className="py-3.5 px-4 sm:px-6">Status / Role</th>
+                    <th className="py-3.5 px-4 sm:px-6">Credits Balance</th>
+                    <th className="py-3.5 px-4 sm:px-6">Joined Date</th>
+                    <th className="py-3.5 px-4 sm:px-6 text-right">Admin Authorization</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle font-mono">
@@ -389,13 +496,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                       </td>
                       <td className="py-4 px-4 sm:px-6">
                         {u.role === 'admin' ? (
-                          <Badge variant="gradient" size="sm">Admin</Badge>
+                          <Badge variant="gradient" size="sm">
+                            <ShieldAlert className="w-3 h-3 mr-1 text-brand-pink" />
+                            Approved Admin
+                          </Badge>
                         ) : (
-                          <Badge variant="outline" size="sm">User</Badge>
+                          <Badge variant="outline" size="sm">Standard User</Badge>
                         )}
                       </td>
-                      <td className="py-4 px-4 sm:px-6 text-brand-cyan font-bold">{u.freeCredits} / 5</td>
-                      <td className="py-4 px-4 sm:px-6 text-text-primary font-bold">{u.purchasedCredits}</td>
+                      <td className="py-4 px-4 sm:px-6">
+                        <span className="font-bold text-brand-cyan">{u.purchasedCredits}</span>
+                        <span className="text-text-muted text-[11px] ml-1.5">(+{u.freeCredits} free)</span>
+                      </td>
                       <td className="py-4 px-4 sm:px-6 text-text-muted">{u.createdAt}</td>
                       <td className="py-4 px-4 sm:px-6 text-right space-x-2 whitespace-nowrap">
                         <Button
@@ -404,7 +516,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                           onClick={() => handleAddCredits(u.id, 50)}
                           className="text-brand-cyan hover:bg-brand-cyan/10"
                         >
-                          +50 Credits
+                          +50 Cr
                         </Button>
                         <Button
                           variant="ghost"
@@ -412,15 +524,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                           onClick={() => handleDeductCredits(u.id, 50)}
                           className="text-status-warning hover:bg-status-warning/10"
                         >
-                          -50 Credits
+                          -50 Cr
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant={u.role === 'admin' ? 'outline' : 'gradient'}
                           size="sm"
                           onClick={() => handleToggleAdminRole(u.id)}
-                          className="text-text-secondary hover:text-text-primary"
                         >
-                          {u.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
+                          {u.role === 'admin' ? 'Revoke Admin' : 'Approve Admin'}
                         </Button>
                       </td>
                     </tr>
@@ -432,111 +543,267 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {activeTab === 'transactions' && (
+      {/* Products & Pricing Manager Tab */}
+      {activeTab === 'products' && (
         <div className="space-y-6 animate-in fade-in-50">
-          <Card variant="default" className="p-0 overflow-hidden border-border-subtle">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-card-elevated text-text-muted border-b border-border-subtle uppercase tracking-wider font-semibold">
-                  <tr>
-                    <th className="py-3.5 px-4 sm:px-6">Date</th>
-                    <th className="py-3.5 px-4 sm:px-6">Customer</th>
-                    <th className="py-3.5 px-4 sm:px-6">bKash TrxID</th>
-                    <th className="py-3.5 px-4 sm:px-6">Amount</th>
-                    <th className="py-3.5 px-4 sm:px-6">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle font-mono">
-                  {transactionsList.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-card-hover/50 transition-colors">
-                      <td className="py-4 px-4 sm:px-6 text-text-muted">{tx.createdAt}</td>
-                      <td className="py-4 px-4 sm:px-6 text-text-primary font-bold">{tx.userEmail}</td>
-                      <td className="py-4 px-4 sm:px-6 text-brand-cyan font-bold">{tx.trxId}</td>
-                      <td className="py-4 px-4 sm:px-6 font-bold text-text-primary">৳{tx.amountBdt} BDT</td>
-                      <td className="py-4 px-4 sm:px-6">
-                        <Badge variant="success" size="sm">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          <span>{tx.status}</span>
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-text-primary">Products &amp; Credit Packs Catalog</h3>
+              <p className="text-xs text-text-muted">
+                Add new credit packages, update prices in BDT, or configure agency tiers.
+              </p>
             </div>
-          </Card>
+
+            <Button
+              variant="gradient"
+              size="sm"
+              leftIcon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsAddingProduct(true)}
+            >
+              Add New Product / Pack
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {productsList.map((p) => (
+              <Card key={p.id} variant="default" className="p-5 space-y-4 border-border-subtle relative flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Badge variant="gradient" size="sm">{p.tag}</Badge>
+                    <button
+                      onClick={() => handleDeleteProduct(p.id)}
+                      className="text-text-muted hover:text-status-error p-1 transition-colors"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <h4 className="text-base font-bold text-text-primary">{p.name}</h4>
+                  <div className="text-2xl font-black text-brand-cyan">৳{p.priceBdt} <span className="text-xs text-text-muted">BDT</span></div>
+                  <p className="text-xs text-text-secondary">{p.credits} Full HD Removal Credits</p>
+                </div>
+
+                <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs">
+                  <span className="text-status-success font-semibold">Active in bKash</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={<Edit2 className="w-3.5 h-3.5" />}
+                    onClick={() => {
+                      const newPrice = prompt(`Enter new BDT price for ${p.name}:`, p.priceBdt.toString());
+                      if (newPrice && !isNaN(Number(newPrice))) {
+                        setProductsList((prev) =>
+                          prev.map((item) => (item.id === p.id ? { ...item, priceBdt: Number(newPrice) } : item))
+                        );
+                        addToast({
+                          title: 'Price Updated',
+                          description: `${p.name} price changed to ৳${newPrice} BDT.`,
+                          type: 'success',
+                        });
+                      }
+                    }}
+                  >
+                    Edit Price
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Add Product Modal */}
+          {isAddingProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-50">
+              <Card variant="elevated" className="w-full max-w-md p-6 space-y-5 border-border shadow-2xl">
+                <h3 className="text-lg font-bold text-text-primary">Add New Product / Credit Pack</h3>
+                <form onSubmit={handleCreateProduct} className="space-y-4">
+                  <Input
+                    label="Product Name"
+                    placeholder="e.g. Photography Studio 500 Pack"
+                    value={newProdName}
+                    onChange={(e) => setNewProdName(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label="Price (BDT)"
+                    type="number"
+                    placeholder="e.g. 999"
+                    value={newProdPrice}
+                    onChange={(e) => setNewProdPrice(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label="Credits Included"
+                    type="number"
+                    placeholder="e.g. 500"
+                    value={newProdCredits}
+                    onChange={(e) => setNewProdCredits(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label="Badge / Tag"
+                    placeholder="e.g. Best Seller, Limited Offer"
+                    value={newProdTag}
+                    onChange={(e) => setNewProdTag(e.target.value)}
+                  />
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button variant="ghost" size="md" onClick={() => setIsAddingProduct(false)}>Cancel</Button>
+                    <Button variant="gradient" size="md" type="submit">Save Product</Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
         </div>
       )}
 
+      {/* Discounts & Promo Codes Tab */}
+      {activeTab === 'discounts' && (
+        <div className="space-y-8 animate-in fade-in-50">
+          {/* Global Platform Flash Sale Switch */}
+          <Card variant="default" className="p-6 sm:p-8 space-y-4 border-brand-pink/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-subtle pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-brand-pink" />
+                  <h3 className="text-lg font-bold text-text-primary">Platform-Wide Flash Discount</h3>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Automatically applies a global percentage discount to all bKash checkout plans across the entire site.
+                </p>
+              </div>
+
+              <Button
+                variant={isGlobalSaleActive ? 'gradient' : 'outline'}
+                size="md"
+                onClick={() => {
+                  setIsGlobalSaleActive(!isGlobalSaleActive);
+                  addToast({
+                    title: isGlobalSaleActive ? 'Flash Sale Disabled' : 'Flash Sale Activated!',
+                    description: isGlobalSaleActive ? 'Standard prices restored.' : `Global ${globalDiscountPct}% discount active site-wide!`,
+                    type: isGlobalSaleActive ? 'info' : 'success',
+                  });
+                }}
+              >
+                {isGlobalSaleActive ? `Active (${globalDiscountPct}% OFF)` : 'Activate Flash Sale'}
+              </Button>
+            </div>
+
+            {isGlobalSaleActive && (
+              <div className="flex items-center gap-3 pt-2 text-xs">
+                <span className="text-text-secondary font-semibold">Discount Percentage:</span>
+                <input
+                  type="number"
+                  min="5"
+                  max="90"
+                  value={globalDiscountPct}
+                  onChange={(e) => setGlobalDiscountPct(Number(e.target.value))}
+                  className="w-20 px-3 py-1.5 rounded-lg bg-card-elevated border border-border text-center font-bold text-brand-pink"
+                />
+                <span className="text-brand-cyan font-semibold">% OFF applied automatically on Pricing Page!</span>
+              </div>
+            )}
+          </Card>
+
+          {/* Promo Codes List */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-text-primary">Active Promo Codes</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => setIsAddingPromo(true)}
+              >
+                Create Promo Code
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {promosList.map((pr) => (
+                <Card key={pr.id} variant="default" className="p-5 space-y-3 border-border-subtle flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-base font-black text-brand-cyan tracking-wider">{pr.code}</span>
+                      <Badge variant="success" size="sm">{pr.discountPercent}% OFF</Badge>
+                    </div>
+                    <p className="text-xs text-text-muted">{pr.usesRemaining} uses remaining</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setPromosList((prev) => prev.filter((p) => p.id !== pr.id));
+                      addToast({ title: 'Promo Code Removed', description: `${pr.code} deactivated.`, type: 'info' });
+                    }}
+                    className="text-text-muted hover:text-status-error p-1.5 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Promo Modal */}
+          {isAddingPromo && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-50">
+              <Card variant="elevated" className="w-full max-w-md p-6 space-y-5 border-border shadow-2xl">
+                <h3 className="text-lg font-bold text-text-primary">Create New Promo Code</h3>
+                <form onSubmit={handleCreatePromo} className="space-y-4">
+                  <Input
+                    label="Promo Code (e.g. EID2026)"
+                    placeholder="SUMMER50"
+                    value={newPromoCode}
+                    onChange={(e) => setNewPromoCode(e.target.value.toUpperCase())}
+                    required
+                  />
+                  <Input
+                    label="Discount Percentage (%)"
+                    type="number"
+                    min="5"
+                    max="90"
+                    placeholder="20"
+                    value={newPromoDiscount}
+                    onChange={(e) => setNewPromoDiscount(e.target.value)}
+                    required
+                  />
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button variant="ghost" size="md" onClick={() => setIsAddingPromo(false)}>Cancel</Button>
+                    <Button variant="gradient" size="md" type="submit">Activate Code</Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Admin Setup Guide Tab */}
       {activeTab === 'guide' && (
         <div className="space-y-8 animate-in fade-in-50 max-w-4xl">
-          {/* Guide Section 1: How to Login as Admin */}
           <Card variant="default" className="p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-2.5 text-brand-cyan">
-              <Key className="w-5 h-5" />
-              <h3 className="text-lg font-bold text-text-primary">1. How to Login as Admin</h3>
+              <Lock className="w-5 h-5" />
+              <h3 className="text-lg font-bold text-text-primary">1. Single Master Admin Architecture</h3>
             </div>
             <div className="space-y-3 text-xs sm:text-sm text-text-secondary leading-relaxed">
               <p>
-                Any user whose registered email is <strong className="text-text-primary">admin@clearcut.ai</strong>, or has their role set to <code className="text-brand-cyan bg-black/40 px-1.5 py-0.5 rounded">admin</code> in Supabase, automatically receives Super Admin rights.
+                By default, only your authorized master account has access to the Admin Panel. No external user can access or view admin controls unless you explicitly click <strong>&quot;Approve Admin&quot;</strong> on their email in the <strong>Admin Access & Users</strong> tab.
               </p>
-              <ol className="list-decimal pl-5 space-y-1.5">
-                <li>Click <strong>Sign In</strong> in the top navbar.</li>
-                <li>Enter your administrator email & password (or sign in with your admin Google account).</li>
-                <li>Once logged in, the <strong>Master Admin Panel</strong> link will appear in your top navigation and user dropdown!</li>
-              </ol>
             </div>
           </Card>
 
-          {/* Guide Section 2: How to Give Admin Access to Another Person */}
           <Card variant="default" className="p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-2.5 text-brand-pink">
-              <Users className="w-5 h-5" />
-              <h3 className="text-lg font-bold text-text-primary">2. How to Grant Admin Access to Another Person</h3>
+              <Tag className="w-5 h-5" />
+              <h3 className="text-lg font-bold text-text-primary">2. Managing Discounts &amp; New Products</h3>
             </div>
             <div className="space-y-3 text-xs sm:text-sm text-text-secondary leading-relaxed">
-              <p>You can grant admin privileges in two ways:</p>
-              <div className="p-4 rounded-xl bg-card border border-border-subtle space-y-2">
-                <h4 className="font-bold text-text-primary">Option A: Via This Admin Panel (Instant)</h4>
-                <p className="text-xs">
-                  Go to the <strong>Users & Credits</strong> tab above, find the person by name or email, and click <strong>Make Admin</strong>.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-card border border-border-subtle space-y-2">
-                <h4 className="font-bold text-text-primary">Option B: In Supabase SQL Editor</h4>
-                <p className="text-xs">Run this simple SQL query in your Supabase SQL Editor:</p>
-                <pre className="p-3 rounded-lg bg-black/80 text-xs font-mono text-brand-cyan overflow-x-auto">
-{`UPDATE profiles 
-SET role = 'admin' 
-WHERE email = 'colleague@example.com';`}
-                </pre>
-              </div>
-            </div>
-          </Card>
-
-          {/* Guide Section 3: How to Edit and Maintain the Website */}
-          <Card variant="default" className="p-6 sm:p-8 space-y-4">
-            <div className="flex items-center gap-2.5 text-status-success">
-              <BookOpen className="w-5 h-5" />
-              <h3 className="text-lg font-bold text-text-primary">3. How to Edit and Maintain the Website</h3>
-            </div>
-            <div className="space-y-3 text-xs sm:text-sm text-text-secondary leading-relaxed">
-              <div className="space-y-2">
-                <h4 className="font-bold text-text-primary">Editing Text, Pricing & Branding</h4>
-                <ul className="list-disc pl-5 space-y-1 text-xs">
-                  <li><strong>Pricing Plans:</strong> Update prices in <code className="text-brand-cyan">supabase/migrations/</code> or directly in Supabase table <code className="text-brand-cyan">plans</code>.</li>
-                  <li><strong>Landing Page Content:</strong> Edit components inside <code className="text-brand-cyan">src/components/landing/</code>.</li>
-                  <li><strong>Colors & Styling:</strong> Customize CSS variables in <code className="text-brand-cyan">src/index.css</code>.</li>
-                </ul>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-border-subtle">
-                <h4 className="font-bold text-text-primary">Deploying Updates</h4>
-                <p className="text-xs">
-                  When you make changes, commit to git and run <code className="text-brand-cyan">npm run build</code>. The project builds a lightning-fast production bundle into <code className="text-brand-cyan">dist/</code> ready for Vercel, Netlify, or Cloudflare Pages.
-                </p>
-              </div>
+              <p>
+                - <strong>Edit Prices:</strong> Click &quot;Edit Price&quot; in the Products tab to change the BDT price of any plan instantly.
+                <br />
+                - <strong>Add Products:</strong> Click &quot;Add New Product&quot; to create agency packs or customized credit tiers.
+                <br />
+                - <strong>Flash Sales:</strong> Toggle &quot;Activate Flash Sale&quot; in the Discounts tab to apply an instant percentage discount site-wide.
+              </p>
             </div>
           </Card>
         </div>

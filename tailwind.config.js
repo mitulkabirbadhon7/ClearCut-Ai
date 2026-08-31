@@ -8,14 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#020617', // Dark background
+        background: 'var(--color-background)',
         card: {
-          DEFAULT: '#0F172A',  // Card surface
-          elevated: '#172033', // Elevated card
-          hover: '#1E293B',
+          DEFAULT: 'var(--color-card)',
+          elevated: 'var(--color-card-elevated)',
+          hover: 'var(--color-card-hover)',
         },
         primary: {
-          DEFAULT: '#0EA5E9',  // Primary blue
+          DEFAULT: '#0EA5E9',
           hover: '#0284C7',
           foreground: '#F8FAFC',
         },
@@ -26,9 +26,9 @@ export default {
           pink: '#D946EF',
         },
         text: {
-          primary: '#F8FAFC',
-          secondary: '#CBD5E1',
-          muted: '#94A3B8',
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         },
         status: {
           success: '#22C55E',
@@ -36,9 +36,9 @@ export default {
           error: '#EF4444',
         },
         border: {
-          subtle: '#1E293B',
-          DEFAULT: '#334155',
-          highlight: '#475569',
+          subtle: 'var(--color-border-subtle)',
+          DEFAULT: 'var(--color-border-default)',
+          highlight: 'var(--color-border-highlight)',
         },
       },
       backgroundImage: {
