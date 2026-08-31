@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Mail, Lock, User, AlertCircle } from 'lucide-react';
-import { useAppStore } from '@/store/useAppStore';
-import { useAuthStore } from '@/store/useAuthStore';
+import { Badge } from '@/components/ui/Badge';
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -14,71 +11,122 @@ import {
   isSupabaseConfigured,
   formatAuthError,
 } from '@/lib/supabase';
+import { useAppStore } from '@/store/useAppStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { Mail, Lock, User, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialMode?: 'login' | 'register' | 'forgot';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialMode = 'login',
+}) => {
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { addToast } = useAppStore();
-  const { initializeAuth } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    // Email format validation
+    const emailTrimmed = email.trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailTrimmed)) {
+      setErrorMsg('Please enter a valid email address (e.g. name@gmail.com).');
+      return;
+    }
+
+    if (mode === 'register') {
+      if (!fullName.trim()) {
+        setErrorMsg('Please enter your full name.');
+        return;
+      }
+      if (password.length < 6) {
+        setErrorMsg('Password must be at least 6 characters long.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setErrorMsg('Passwords do not match. Please ensure both passwords are identical.');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (!isSupabaseConfigured) {
-        // Simulated local fallback mode when keys are not yet injected into .env
-        setTimeout(() => {
-          setLoading(false);
-          addToast({
-            title: mode === 'login' ? 'Signed In (Demo)' : 'Account Created (Demo)',
-            description: 'Supabase credentials pending in .env file. Working in demo mode.',
-            type: 'info',
-          });
-          onClose();
-          if (onSuccess) onSuccess();
-        }, 800);
+        // High-fidelity fallback for offline demo
+        const mockUser = {
+          id: `demo_${Date.now()}`,
+          email: emailTrimmed,
+          user_metadata: { full_name: fullName.trim() || emailTrimmed.split('@')[0] },
+          app_metadata: {},
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+        } as any;
+
+        setUser(mockUser, { access_token: 'demo_token' } as any);
+        addToast({
+          title: mode === 'register' ? 'Account Created!' : 'Welcome Back!',
+          description: `Signed in as ${emailTrimmed}.`,
+          type: 'success',
+        });
+        onClose();
+        if (onSuccess) onSuccess();
         return;
       }
 
       if (mode === 'login') {
-        await signInWithEmail(email, password);
-        await initializeAuth();
+        const { user, session } = await signInWithEmail(emailTrimmed, password);
+        setUser(user, session);
         addToast({
-          title: 'Sign In Successful',
-          description: `Welcome back to ClearCut AI!`,
+          title: 'Welcome Back!',
+          description: 'Successfully signed in to ClearCut AI.',
           type: 'success',
         });
         onClose();
         if (onSuccess) onSuccess();
       } else if (mode === 'register') {
-        await signUpWithEmail(email, password, fullName);
-        await initializeAuth();
-        addToast({
-          title: 'Registration Successful',
-          description: 'Please check your email to verify your account.',
-          type: 'success',
-        });
+        const { user, session } = await signUpWithEmail(emailTrimmed, password, fullName.trim());
+        if (user && !session) {
+          addToast({
+            title: 'Account Created Successfully!',
+            description: 'Please check your email inbox to confirm your account.',
+            type: 'info',
+          });
+        } else {
+          setUser(user, session);
+          addToast({
+            title: 'Welcome to ClearCut AI!',
+            description: 'Your account is ready with 5 Free Daily Credits.',
+            type: 'success',
+          });
+        }
         onClose();
         if (onSuccess) onSuccess();
-      } else {
-        await resetPasswordForEmail(email);
+      } else if (mode === 'forgot') {
+        await resetPasswordForEmail(emailTrimmed);
         addToast({
-          title: 'Password Reset Email Sent',
-          description: `Instructions have been sent to ${email}`,
-          type: 'info',
+          title: 'Password Reset Sent',
+          description: 'Please check your email for the password recovery link.',
+          type: 'success',
         });
         setMode('login');
       }
@@ -86,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       const msg = formatAuthError(err);
       setErrorMsg(msg);
       addToast({
-        title: 'Authentication Notice',
+        title: mode === 'login' ? 'Sign In Failed' : 'Registration Notice',
         description: msg,
         type: 'error',
       });
@@ -100,7 +148,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       if (!isSupabaseConfigured) {
         addToast({
           title: 'Google OAuth',
-          description: 'Configure VITE_SUPABASE_URL and Supabase Google Provider in .env to enable OAuth.',
+          description: 'Configure VITE_SUPABASE_URL and Supabase Google Provider to enable OAuth.',
           type: 'info',
         });
         return;
@@ -118,21 +166,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="sm">
-      <div className="space-y-6 pt-1">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="md">
+      <div className="space-y-6">
+        {/* Modal Header */}
         <div className="text-center space-y-2">
-          <div className="flex justify-center mb-3">
-            <BrandLogo size="sm" showText={false} />
-          </div>
-          <h3 className="text-xl sm:text-2xl font-extrabold text-text-primary">
-            {mode === 'login' && 'Sign in to ClearCut AI'}
+          <Badge variant="gradient" size="sm">
+            {mode === 'login' && 'Sign In'}
+            {mode === 'register' && 'Get 5 Free Credits Daily'}
+            {mode === 'forgot' && 'Account Recovery'}
+          </Badge>
+          <h2 className="text-2xl font-black text-text-primary tracking-tight">
+            {mode === 'login' && 'Welcome Back to ClearCut AI'}
             {mode === 'register' && 'Create Your Free Account'}
-            {mode === 'forgot' && 'Reset Password'}
-          </h3>
+            {mode === 'forgot' && 'Reset Your Password'}
+          </h2>
           <p className="text-xs text-text-muted">
-            {mode === 'login' && 'Access your image cutouts, credits, and history.'}
-            {mode === 'register' && 'Get 5 free background removals every day.'}
-            {mode === 'forgot' && 'Enter your email to receive a recovery link.'}
+            {mode === 'login' && 'Sign in to access your dashboard, HD cutouts & API keys.'}
+            {mode === 'register' && 'Get 5 free background removals every single day.'}
+            {mode === 'forgot' && "Enter your email and we'll send a secure password reset link."}
           </p>
         </div>
 
@@ -142,9 +193,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <button
               type="button"
               onClick={handleGoogleAuth}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle text-xs font-semibold text-text-primary transition-colors shadow-sm"
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-brand-blue/50 text-sm font-semibold text-text-primary transition-all shadow-sm focus:outline-none"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
@@ -179,7 +230,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {mode === 'register' && (
             <Input
               label="Full Name"
-              placeholder="e.g. Mitul Kabir"
+              placeholder="Enter your full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               leftIcon={<User className="w-4 h-4" />}
@@ -200,11 +251,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {mode !== 'forgot' && (
             <Input
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leftIcon={<Lock className="w-4 h-4" />}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-text-muted hover:text-text-primary focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+              required
+            />
+          )}
+
+          {mode === 'register' && (
+            <Input
+              label="Retype Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Re-enter your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              leftIcon={<Lock className="w-4 h-4" />}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-text-muted hover:text-text-primary focus:outline-none"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
               required
             />
           )}
@@ -222,7 +305,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
           {errorMsg && (
-            <div className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2">
+            <div className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2 animate-in fade-in-50">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -231,7 +314,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <Button
             type="submit"
             variant="gradient"
-            className="w-full justify-center"
+            className="w-full justify-center shadow-lg shadow-brand-blue/20"
             size="md"
             isLoading={loading}
           >
@@ -248,8 +331,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               No account yet?{' '}
               <button
                 type="button"
-                onClick={() => setMode('register')}
-                className="text-brand-cyan font-bold hover:underline ml-1"
+                onClick={() => {
+                  setMode('register');
+                  setErrorMsg(null);
+                }}
+                className="text-brand-cyan font-bold hover:underline"
               >
                 Register Free
               </button>
@@ -258,11 +344,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
           {mode === 'register' && (
             <p>
-              Already registered?{' '}
+              Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => setMode('login')}
-                className="text-brand-cyan font-bold hover:underline ml-1"
+                onClick={() => {
+                  setMode('login');
+                  setErrorMsg(null);
+                }}
+                className="text-brand-cyan font-bold hover:underline"
               >
                 Sign In
               </button>
@@ -270,14 +359,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
           {mode === 'forgot' && (
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className="text-brand-cyan font-bold hover:underline"
-            >
-              Back to Sign In
-            </button>
+            <p>
+              Remember your password?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setErrorMsg(null);
+                }}
+                className="text-brand-cyan font-bold hover:underline"
+              >
+                Back to Sign In
+              </button>
+            </p>
           )}
+        </div>
+
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-text-muted">
+          <ShieldCheck className="w-3.5 h-3.5 text-status-success" />
+          <span>Encrypted with Supabase Auth Security</span>
         </div>
       </div>
     </Modal>
