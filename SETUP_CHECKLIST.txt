@@ -1,0 +1,93 @@
+================================================================================
+SNAPCUT AI - EXTERNAL SERVICES & ENVIRONMENT SETUP CHECKLIST
+================================================================================
+Project: SnapCut AI
+Target Ecosystem: React + Vite + Supabase + n8n Cloud + Cloudinary + bKash + Vercel
+Status Legend: [x] Verified/Configured | [ ] Pending Configuration
+================================================================================
+
+1. LOCAL DEVELOPMENT ENVIRONMENT
+--------------------------------------------------------------------------------
+[x] Node.js installed (v24.19.0)
+[x] npm package manager verified (v11.6.2)
+[x] Git version control installed (v2.53.0.windows.1)
+[x] Git user profile configured (MD Mitul Kabir Badhon / mitulkabirbadhon7@gmail.com)
+[x] Git repository initialized (.git) [Phase 1]
+[x] GitHub remote repository linked (https://github.com/mitulkabirbadhon7/SnapCut.git) [Phase 1]
+[x] IDE / development workspace configured
+
+2. VERSION CONTROL & GITHUB
+--------------------------------------------------------------------------------
+[x] GitHub account active
+[x] Remote repository `SnapCut` linked on GitHub
+[x] Default branch structure initialized (`main`, `develop`, `feature/*`)
+[ ] Branch protection rules planned for `main`
+
+3. FRONTEND & BUILD SYSTEM
+--------------------------------------------------------------------------------
+[x] React + Vite + TypeScript initialized
+[x] Tailwind CSS configured with custom SnapCut brand color palette
+[x] Lucide Icons & UI utility dependencies installed
+[x] React Hook Form & Zod schema validation installed
+[x] Zustand & TanStack Query state managers installed
+[x] .env.example created with all documented keys
+
+
+4. SUPABASE (AUTH & DATABASE)
+--------------------------------------------------------------------------------
+[ ] Supabase account created (https://supabase.com)
+[ ] New Supabase project created: `snapcut-ai`
+[ ] Project URL & Public Anon Key obtained for frontend
+[ ] Supabase Service Role Key stored securely for n8n workflows
+[ ] Supabase Auth enabled (Email/Password & Google OAuth provider)
+[ ] Database schema migration executed (profiles, jobs, credits, plans, etc.)
+[ ] Row Level Security (RLS) policies applied & tested
+
+5. CLOUDINARY (TEMPORARY IMAGE STORAGE)
+--------------------------------------------------------------------------------
+[ ] Cloudinary account registered (https://cloudinary.com)
+[ ] Cloud Name, API Key, and Upload Preset configured
+[ ] Unsigned or signed upload preset set for client upload
+[ ] 24-hour auto-purge / retention policy configured (No permanent storage)
+
+6. N8N CLOUD (BACKEND AUTOMATION & BUSINESS ENGINE)
+--------------------------------------------------------------------------------
+[ ] n8n Cloud account registered (https://n8n.cloud)
+[ ] Webhook endpoints created for Image Processing, Payment, and User Events
+[ ] Supabase credential configured inside n8n
+[ ] AI Background Removal API credential configured inside n8n
+[ ] Cloudinary credential configured inside n8n
+[ ] bKash Merchant credential configured inside n8n
+
+7. AI BACKGROUND REMOVAL API PROVIDER
+--------------------------------------------------------------------------------
+[ ] Provider selected & API account created (e.g. Clipdrop / Remove.bg / Stability AI / PhotoRoom)
+[ ] API Key acquired & tested
+[ ] Provider rate limits & credit quotas verified
+[ ] Secrets safely injected into n8n Cloud credentials (never frontend)
+
+8. BKASH PAYMENT GATEWAY (BANGLADESH)
+--------------------------------------------------------------------------------
+[ ] bKash Merchant account application submitted / approved
+[ ] Official bKash Payment Gateway Sandbox credentials obtained:
+    - App Key
+    - App Secret
+    - Username
+    - Password
+    - Base URL (Sandbox / Production)
+[ ] bKash checkout callback URL registered with n8n webhook
+[ ] Idempotent payment verification workflow configured
+
+9. VERCEL (HOSTING & PRODUCTION DEVOPS)
+--------------------------------------------------------------------------------
+[ ] Vercel account linked with GitHub
+[ ] Project imported into Vercel
+[ ] Production and Preview Environment Variables configured
+[ ] Custom domain DNS configured (e.g., snapcut.ai or snapcut.com.bd)
+[ ] SSL / HTTPS certificate verified
+
+================================================================================
+HOW TO USE THIS CHECKLIST:
+Check off each item as we reach the respective phase. Never proceed to
+dependent features before the prerequisites are checked and verified.
+================================================================================

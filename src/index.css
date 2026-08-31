@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #020617;
+    color: #F8FAFC;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Custom smooth dark scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #020617;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+@layer utilities {
+  /* High-contrast checkerboard pattern for transparent PNG cutouts */
+  .bg-checkerboard {
+    background-color: #0F172A;
+    background-image: 
+      linear-gradient(45deg, #1E293B 25%, transparent 25%), 
+      linear-gradient(-45deg, #1E293B 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #1E293B 75%), 
+      linear-gradient(-45deg, transparent 75%, #1E293B 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #22D3EE 0%, #2563EB 35%, #7C3AED 70%, #D946EF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(135deg, #22D3EE, #2563EB, #7C3AED, #D946EF) 1;
+  }
+}
