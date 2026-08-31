@@ -61,7 +61,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Your Name"
-              placeholder="e.g. Mitul Kabir"
+              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -104,8 +104,13 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
               <Mail className="w-5 h-5" />
               <h3 className="text-sm font-bold text-text-primary">Email Support</h3>
             </div>
-            <p className="text-xs text-text-muted">Direct inquiries:</p>
-            <p className="text-xs font-semibold text-text-primary">support@clearcut.ai</p>
+            <p className="text-xs text-text-muted">Direct inquiries & support:</p>
+            <a
+              href="mailto:mitulkabirbadhon7@gmail.com"
+              className="text-xs font-bold text-brand-cyan hover:underline break-all block"
+            >
+              mitulkabirbadhon7@gmail.com
+            </a>
           </Card>
 
           <Card variant="default" className="p-6 space-y-4">
@@ -114,6 +119,12 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
               <h3 className="text-sm font-bold text-text-primary">bKash Merchant Support</h3>
             </div>
             <p className="text-xs text-text-muted">Billing and invoice assistance within 24 hours.</p>
+            <a
+              href="mailto:mitulkabirbadhon7@gmail.com?subject=ClearCut%20AI%20bKash%20Billing%20Support"
+              className="text-xs font-bold text-brand-pink hover:underline break-all block"
+            >
+              mitulkabirbadhon7@gmail.com
+            </a>
           </Card>
         </div>
       </div>
