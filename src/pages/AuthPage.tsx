@@ -47,7 +47,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   // Strict email validation
   const validateEmail = (val: string): boolean => {
     const trimmed = val.trim().toLowerCase();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!trimmed || trimmed.includes('..') || trimmed.includes('@.')) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
     return emailRegex.test(trimmed);
   };
 
