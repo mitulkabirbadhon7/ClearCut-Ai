@@ -17,20 +17,58 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { addToast } = useAppStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/mitulkabirbadhon7@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          _subject: `ClearCut AI Support: Message from ${name}`,
+          _template: 'table',
+        }),
+      });
+
+      if (response.ok) {
+        addToast({
+          title: 'Message Sent Successfully',
+          description: 'Thank you! Your message has been delivered to our inbox.',
+          type: 'success',
+        });
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        throw new Error('API delivery failed');
+      }
+    } catch {
+      // Fallback: Open mailto client with prefilled parameters
+      const mailtoUrl = `mailto:mitulkabirbadhon7@gmail.com?subject=${encodeURIComponent(
+        `ClearCut AI Support: ${name}`
+      )}&body=${encodeURIComponent(
+        `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+      )}`;
+      window.location.href = mailtoUrl;
+
       addToast({
-        title: 'Message Received',
-        description: 'Thank you! Our support team will get back to you shortly.',
-        type: 'success',
+        title: 'Email Client Opened',
+        description: 'Please click send in your email client to complete delivery.',
+        type: 'info',
       });
       setName('');
       setEmail('');
       setMessage('');
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
