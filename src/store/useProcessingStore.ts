@@ -31,6 +31,7 @@ interface ProcessingState {
   setSampleImage: (url: string, name: string) => Promise<void>;
   startUploadAndProcess: () => Promise<void>;
   cancelOperation: () => void;
+  dismissError: () => void;
   resetStudio: () => void;
   setProcessedUrl: (url: string) => void;
 }
@@ -187,12 +188,20 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
       URL.revokeObjectURL(processedUrl);
     }
     set({
+      file: null,
+      previewUrl: null,
+      uploadedUrl: null,
+      processedUrl: null,
       status: 'idle',
-      error: 'Operation cancelled.',
+      error: null,
       uploadProgress: 0,
       processingProgress: 0,
       abortController: null,
     });
+  },
+
+  dismissError: () => {
+    set({ error: null });
   },
 
   resetStudio: () => {

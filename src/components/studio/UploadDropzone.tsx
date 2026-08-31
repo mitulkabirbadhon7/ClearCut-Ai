@@ -13,8 +13,18 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { file, previewUrl, status, uploadProgress, error, setFile, cancelOperation, startUploadAndProcess } =
-    useProcessingStore();
+  const {
+    file,
+    previewUrl,
+    status,
+    uploadProgress,
+    error,
+    setFile,
+    cancelOperation,
+    resetStudio,
+    dismissError,
+    startUploadAndProcess,
+  } = useProcessingStore();
   const { addToast } = useAppStore();
 
   // Listen to Ctrl+V (Clipboard paste) anywhere on the page
@@ -57,14 +67,6 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles && droppedFiles.length > 0) {
-      const ok = await setFile(droppedFiles[0]);
-      if (ok && onFileReady) {
-        onFileReady();
-      }
-    }
   };
 
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +77,6 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
         onFileReady();
       }
     }
-    // Reset file input value so selecting the same file triggers change
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -111,9 +112,10 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
               </div>
             </div>
             <button
-              onClick={cancelOperation}
+              onClick={resetStudio}
               className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-card-hover transition-colors"
               title="Remove image"
+              aria-label="Remove image"
             >
               <X className="w-5 h-5" />
             </button>
@@ -136,7 +138,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
             >
               Remove Background Now (1 Credit)
             </Button>
-            <Button variant="ghost" size="lg" onClick={cancelOperation}>
+            <Button variant="ghost" size="lg" onClick={resetStudio}>
               Choose Another Image
             </Button>
           </div>
@@ -244,7 +246,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileReady }) =
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={cancelOperation} className="text-status-error hover:bg-status-error/20">
+          <Button variant="ghost" size="sm" onClick={dismissError} className="text-status-error hover:bg-status-error/20">
             Dismiss
           </Button>
         </div>
