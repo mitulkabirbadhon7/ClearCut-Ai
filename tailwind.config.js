@@ -8,11 +8,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: 'var(--color-background)',
+        background: 'rgb(var(--color-background-rgb) / <alpha-value>)',
         card: {
-          DEFAULT: 'var(--color-card)',
-          elevated: 'var(--color-card-elevated)',
-          hover: 'var(--color-card-hover)',
+          DEFAULT: 'rgb(var(--color-card-rgb) / <alpha-value>)',
+          elevated: 'rgb(var(--color-card-elevated-rgb) / <alpha-value>)',
+          hover: 'rgb(var(--color-card-hover-rgb) / <alpha-value>)',
         },
         primary: {
           DEFAULT: '#0EA5E9',
@@ -26,9 +26,9 @@ export default {
           pink: '#D946EF',
         },
         text: {
-          primary: 'var(--color-text-primary)',
-          secondary: 'var(--color-text-secondary)',
-          muted: 'var(--color-text-muted)',
+          primary: 'rgb(var(--color-text-primary-rgb) / <alpha-value>)',
+          secondary: 'rgb(var(--color-text-secondary-rgb) / <alpha-value>)',
+          muted: 'rgb(var(--color-text-muted-rgb) / <alpha-value>)',
         },
         status: {
           success: '#22C55E',
@@ -36,9 +36,9 @@ export default {
           error: '#EF4444',
         },
         border: {
-          subtle: 'var(--color-border-subtle)',
-          DEFAULT: 'var(--color-border-default)',
-          highlight: 'var(--color-border-highlight)',
+          subtle: 'rgb(var(--color-border-subtle-rgb) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--color-border-default-rgb) / <alpha-value>)',
+          highlight: 'rgb(var(--color-border-highlight-rgb) / <alpha-value>)',
         },
       },
       backgroundImage: {

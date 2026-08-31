@@ -21,6 +21,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface LandingPageProps {
   onNavigate?: (route: string) => void;
@@ -28,6 +29,22 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const { setActiveModal, addToast } = useAppStore();
+  const { user } = useAuthStore();
+
+  const handleStartOrUpload = () => {
+    if (!user) {
+      if (onNavigate) {
+        onNavigate('auth');
+      } else {
+        setActiveModal('auth');
+      }
+    } else {
+      const el = document.getElementById('upload-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   const handleBuyPlan = (planName: string, priceBdt: number) => {
     addToast({
@@ -70,10 +87,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               size="lg"
               leftIcon={<Sparkles className="w-5 h-5" />}
               rightIcon={<ArrowRight className="w-5 h-5" />}
-              onClick={() => {
-                const el = document.getElementById('upload-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={handleStartOrUpload}
             >
               Remove Background Now
             </Button>
@@ -290,7 +304,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <Button
               variant="outline"
               className="w-full justify-center"
-              onClick={() => setActiveModal('auth')}
+              onClick={handleStartOrUpload}
             >
               Get Started Free
             </Button>
@@ -452,10 +466,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               variant="gradient"
               size="lg"
               leftIcon={<Sparkles className="w-5 h-5" />}
-              onClick={() => {
-                const el = document.getElementById('upload-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={handleStartOrUpload}
             >
               Start Free (5 Daily Credits)
             </Button>

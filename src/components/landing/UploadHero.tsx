@@ -35,7 +35,7 @@ export const UploadHero: React.FC<UploadHeroProps> = () => {
       </div>
 
       {/* Interactive Studio Workspace */}
-      <div className="relative z-10">
+      <div id="upload-section" className="relative z-10 scroll-mt-24">
         <CutoutStudio />
       </div>
 

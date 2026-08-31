@@ -25,6 +25,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
         onNavigate('auth');
       } else if (onNavigate) {
         onNavigate('home');
+        setTimeout(() => {
+          const el = document.getElementById('upload-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 150);
       }
       return;
     }

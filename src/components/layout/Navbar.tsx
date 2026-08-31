@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border-subtle bg-card/95 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top-4 duration-200">
+        <div className="md:hidden border-b border-border-subtle bg-card/98 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top-4 duration-200 shadow-2xl">
           <div className="flex flex-col space-y-2">
             <button
               onClick={() => handleLinkClick('home')}
@@ -190,7 +190,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pt-3 border-t border-border-subtle flex flex-col gap-2.5">
             {user ? (
               <div className="pb-1">
-                <UserMenu onNavigate={onNavigate} />
+                <UserMenu
+                  onNavigate={(route) => {
+                    setMobileMenuOpen(false);
+                    if (onNavigate) onNavigate(route);
+                  }}
+                />
               </div>
             ) : (
               <Button
