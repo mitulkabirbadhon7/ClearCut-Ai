@@ -56,4 +56,25 @@
   .border-gradient {
     border-image: linear-gradient(135deg, #22D3EE, #2563EB, #7C3AED, #D946EF) 1;
   }
+
+  @keyframes scanline {
+    0% {
+      top: 0%;
+      opacity: 0.8;
+    }
+    50% {
+      top: 98%;
+      opacity: 1;
+    }
+    100% {
+      top: 0%;
+      opacity: 0.8;
+    }
+  }
+
+  .animate-scan {
+    position: absolute;
+    animation: scanline 2.2s ease-in-out infinite;
+  }
 }
+

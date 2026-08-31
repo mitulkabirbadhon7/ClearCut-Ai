@@ -1,195 +1,58 @@
-import React, { useState, useRef } from 'react';
-import { UploadCloud, Image as ImageIcon, Sparkles, Shield, AlertCircle, FileCheck } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { useAppStore } from '@/store/useAppStore';
+import React from 'react';
+import { CutoutStudio } from '@/components/studio/CutoutStudio';
+import { Badge } from '@/components/ui/Badge';
+import { ShieldCheck, Zap, Layers, Sparkles } from 'lucide-react';
 
 interface UploadHeroProps {
-  onImageSelected?: (file: File) => void;
+  onNavigate?: (route: string) => void;
 }
 
-export const UploadHero: React.FC<UploadHeroProps> = ({ onImageSelected }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addToast } = useAppStore();
-
-  const handleValidateAndSetFile = (file: File) => {
-    setError(null);
-
-    // 1. File Type Validation (JPG, JPEG, PNG, WEBP)
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      const err = 'Unsupported format. Please upload a JPG, PNG, or WEBP file.';
-      setError(err);
-      addToast({ title: 'Invalid File Format', description: err, type: 'error' });
-      return;
-    }
-
-    // 2. File Size Validation (Max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      const err = 'File too large. Maximum supported image size is 10 MB.';
-      setError(err);
-      addToast({ title: 'File Size Exceeded', description: err, type: 'error' });
-      return;
-    }
-
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-
-    addToast({
-      title: 'Image Ready',
-      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB) loaded.`,
-      type: 'success',
-    });
-
-    if (onImageSelected) {
-      onImageSelected(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleValidateAndSetFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleValidateAndSetFile(e.target.files[0]);
-    }
-  };
-
-  const handleReset = () => {
-    setSelectedFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(null);
-    setError(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
+export const UploadHero: React.FC<UploadHeroProps> = () => {
   return (
-    <div id="upload-section" className="w-full max-w-3xl mx-auto scroll-mt-24">
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        className={`relative rounded-3xl p-8 sm:p-12 text-center transition-all duration-300 border-2 border-dashed ${
-          isDragOver
-            ? 'border-brand-cyan bg-card-elevated shadow-2xl shadow-brand-cyan/20 scale-[1.01]'
-            : 'border-border-subtle bg-card hover:border-brand-blue/40 shadow-xl'
-        }`}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".jpg,.jpeg,.png,.webp"
-          className="hidden"
-          onChange={handleFileInputChange}
-        />
+    <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-brand-blue/15 via-brand-cyan/10 to-brand-pink/15 blur-[120px] pointer-events-none -z-10 rounded-full" />
 
-        {!selectedFile ? (
-          /* Empty Upload State */
-          <div className="flex flex-col items-center space-y-5">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-cyan/20 via-brand-blue/20 to-brand-pink/20 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shadow-lg shadow-brand-blue/10">
-              <UploadCloud className="w-10 h-10 animate-bounce" />
-            </div>
+      {/* Main Headline & Badge */}
+      <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="flex items-center justify-center gap-2">
+          <Badge variant="gradient" size="md" className="shadow-lg shadow-brand-blue/10">
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            <span>AI Background Remover 2.0</span>
+          </Badge>
+          <Badge variant="outline" size="md">
+            <span>5 Free Daily Credits</span>
+          </Badge>
+        </div>
 
-            <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
-                Drag & drop your image here
-              </h3>
-              <p className="text-sm text-text-muted max-w-md mx-auto">
-                Or click browse to select a file from your computer or smartphone
-              </p>
-            </div>
+        <h1 className="text-4xl sm:text-6xl font-black text-text-primary tracking-tight leading-[1.1]">
+          Remove Backgrounds in <span className="text-gradient">One Click</span>
+        </h1>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Button
-                variant="gradient"
-                size="lg"
-                leftIcon={<ImageIcon className="w-5 h-5" />}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Browse Files
-              </Button>
-            </div>
+        <p className="text-text-secondary text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          Upload any photo, e-commerce product, or portrait. Get a clean, transparent PNG cutout with crisp edges in under 2 seconds.
+        </p>
+      </div>
 
-            {/* Supported formats & Security guarantee */}
-            <div className="pt-6 border-t border-border-subtle/80 flex flex-wrap items-center justify-center gap-6 text-xs text-text-muted">
-              <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-                <FileCheck className="w-4 h-4 text-brand-cyan" />
-                <span>JPG, PNG, WEBP up to 10MB</span>
-              </span>
-              <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-                <Shield className="w-4 h-4 text-status-success" />
-                <span>Auto-deleted after 24 hours</span>
-              </span>
-            </div>
-          </div>
-        ) : (
-          /* Loaded Image Preview State */
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="relative max-w-md mx-auto aspect-video rounded-2xl overflow-hidden bg-card-elevated border border-border-subtle shadow-lg">
-              {previewUrl && (
-                <img
-                  src={previewUrl}
-                  alt="Uploaded source preview"
-                  className="w-full h-full object-contain p-2"
-                />
-              )}
-            </div>
+      {/* Interactive Studio Workspace */}
+      <div className="relative z-10">
+        <CutoutStudio />
+      </div>
 
-            <div className="space-y-1">
-              <h4 className="text-base font-bold text-text-primary">{selectedFile.name}</h4>
-              <p className="text-xs text-text-muted">
-                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for AI segmentation
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Button
-                variant="gradient"
-                size="lg"
-                leftIcon={<Sparkles className="w-5 h-5" />}
-                onClick={() => {
-                  addToast({
-                    title: 'Processing Workflow',
-                    description: 'Connecting to n8n AI engine (Configured in Phase 7)...',
-                    type: 'info',
-                  });
-                }}
-              >
-                Remove Background Now
-              </Button>
-              <Button variant="secondary" size="lg" onClick={handleReset}>
-                Select Another File
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Validation Error Message */}
-        {error && (
-          <div className="mt-4 p-3 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center justify-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+      {/* Trust & Policy Micro-features */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border-subtle max-w-3xl mx-auto text-xs text-text-secondary">
+        <div className="flex items-center justify-center sm:justify-start gap-2">
+          <Zap className="w-4 h-4 text-brand-cyan" />
+          <span>Sub-2s Neural AI Processing</span>
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-status-success" />
+          <span>24-Hour Ephemeral Privacy</span>
+        </div>
+        <div className="flex items-center justify-center sm:justify-end gap-2">
+          <Layers className="w-4 h-4 text-brand-pink" />
+          <span>Full HD PNG Alpha Export</span>
+        </div>
       </div>
     </div>
   );

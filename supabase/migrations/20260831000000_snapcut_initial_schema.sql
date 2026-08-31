@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SNAPCUT AI — POSTGRESQL INITIAL DATABASE SCHEMA & ROW LEVEL SECURITY (RLS)
+-- CLEARCUT AI — POSTGRESQL INITIAL DATABASE SCHEMA & ROW LEVEL SECURITY (RLS)
 -- Migration: 20260831000000_snapcut_initial_schema.sql
 -- ==============================================================================
 
@@ -268,7 +268,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==============================================================================
--- 5. ROW LEVEL SECURITY (RLS) POLICIES
+-- 5. ROW LEVEL SECURITY (RLS) POLICIES (Idempotent with DROP IF EXISTS)
 -- ==============================================================================
 
 -- Enable RLS on all user data tables
@@ -282,48 +282,58 @@ ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_usage ENABLE ROW LEVEL SECURITY;
 
 -- 5.1 Profiles Policies
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile"
     ON public.profiles FOR SELECT
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id);
 
 -- 5.2 Credits Policies
+DROP POLICY IF EXISTS "Users can view own credits" ON public.credits;
 CREATE POLICY "Users can view own credits"
     ON public.credits FOR SELECT
     USING (auth.uid() = user_id);
 
 -- 5.3 Processing Jobs Policies
+DROP POLICY IF EXISTS "Users can view own processing jobs" ON public.processing_jobs;
 CREATE POLICY "Users can view own processing jobs"
     ON public.processing_jobs FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own processing jobs" ON public.processing_jobs;
 CREATE POLICY "Users can insert own processing jobs"
     ON public.processing_jobs FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
 -- 5.4 Plans Policies (Public read-only for active plans)
+DROP POLICY IF EXISTS "Anyone can view active plans" ON public.plans;
 CREATE POLICY "Anyone can view active plans"
     ON public.plans FOR SELECT
     USING (is_active = TRUE);
 
 -- 5.5 Transactions Policies
+DROP POLICY IF EXISTS "Users can view own transactions" ON public.transactions;
 CREATE POLICY "Users can view own transactions"
     ON public.transactions FOR SELECT
     USING (auth.uid() = user_id);
 
 -- 5.6 Subscriptions Policies
+DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.subscriptions;
 CREATE POLICY "Users can view own subscriptions"
     ON public.subscriptions FOR SELECT
     USING (auth.uid() = user_id);
 
 -- 5.7 API Keys Policies
+DROP POLICY IF EXISTS "Users can view own API keys" ON public.api_keys;
 CREATE POLICY "Users can view own API keys"
     ON public.api_keys FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage own API keys" ON public.api_keys;
 CREATE POLICY "Users can manage own API keys"
     ON public.api_keys FOR ALL
     USING (auth.uid() = user_id);
