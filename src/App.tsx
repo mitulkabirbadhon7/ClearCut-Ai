@@ -8,6 +8,7 @@ import { TermsPage } from '@/pages/TermsPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
+import { HelpSupportPage } from '@/pages/HelpSupportPage';
 import { AuthPage } from '@/pages/AuthPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -97,11 +98,17 @@ export default function App() {
         return <AboutPage onNavigate={navigateTo} />;
       case 'contact':
         return <ContactPage onNavigate={navigateTo} />;
+      case 'help':
+      case 'support':
+        return <HelpSupportPage onNavigate={navigateTo} />;
       case 'reset-password':
         return <ResetPasswordPage onNavigate={navigateTo} />;
-      case 'auth':
       case 'login':
+        return <AuthPage onNavigate={navigateTo} initialMode="login" />;
       case 'register':
+      case 'signup':
+        return <AuthPage onNavigate={navigateTo} initialMode="register" />;
+      case 'auth':
         return <AuthPage onNavigate={navigateTo} />;
       case 'payment-callback':
         return <PaymentCallbackPage onNavigate={navigateTo} />;
@@ -132,6 +139,7 @@ export default function App() {
         isOpen={activeModal === 'auth'}
         onClose={() => setActiveModal(null)}
         onSuccess={() => navigateTo('dashboard')}
+        onNavigate={navigateTo}
       />
     </MainLayout>
   );

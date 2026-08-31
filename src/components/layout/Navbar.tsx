@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from './UserMenu';
-import { Menu, X, LogIn, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -105,14 +105,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <UserMenu onNavigate={onNavigate} />
           ) : (
-            <Button
-              variant="gradient"
-              size="sm"
-              leftIcon={<LogIn className="w-4 h-4" />}
-              onClick={() => handleLinkClick('auth')}
-            >
-              Sign In
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleLinkClick('login')}
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="gradient"
+                size="sm"
+                onClick={() => handleLinkClick('register')}
+              >
+                Create Account
+              </Button>
+            </div>
           )}
         </div>
 
@@ -198,15 +206,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </div>
             ) : (
-              <Button
-                variant="gradient"
-                size="md"
-                className="w-full justify-center"
-                leftIcon={<LogIn className="w-4 h-4" />}
-                onClick={() => handleLinkClick('auth')}
-              >
-                Sign In / Register
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="w-full justify-center"
+                  onClick={() => handleLinkClick('login')}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  variant="gradient"
+                  size="md"
+                  className="w-full justify-center"
+                  onClick={() => handleLinkClick('register')}
+                >
+                  Create Free Account
+                </Button>
+              </div>
             )}
           </div>
         </div>

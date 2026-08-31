@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,13 +13,14 @@ import {
 } from '@/lib/supabase';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Mail, Lock, User, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Eye, EyeOff, ShieldCheck, Check } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   initialMode?: 'login' | 'register' | 'forgot';
+  onNavigate?: (route: string) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -27,6 +28,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onSuccess,
   initialMode = 'login',
+  onNavigate,
 }) => {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
@@ -35,24 +37,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // 1. Terms & Conditions Consent Checkbox
+  const [agreeToTerms, setAgreeToTerms] = useState(true);
+  // 2. Email Updates / Newsletter Checkbox
+  const [receiveEmailUpdates, setReceiveEmailUpdates] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { addToast } = useAppStore();
   const { setUser } = useAuthStore();
 
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode, isOpen]);
+
+  // Strict email validation
+  const validateEmail = (val: string): boolean => {
+    const trimmed = val.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(trimmed);
+  };
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    // Email format validation
-    const emailTrimmed = email.trim();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(emailTrimmed)) {
-      setErrorMsg('Please enter a valid email address (e.g. name@gmail.com).');
+    const emailTrimmed = email.trim().toLowerCase();
+
+    // 1. Strict Email Validation
+    if (!emailTrimmed) {
+      setErrorMsg('Please enter your email address.');
       return;
     }
 
+    if (!validateEmail(emailTrimmed)) {
+      setErrorMsg('Invalid email format. Please enter a valid email or Gmail address (e.g. name@gmail.com).');
+      return;
+    }
+
+    // 2. Registration field validation
     if (mode === 'register') {
       if (!fullName.trim()) {
         setErrorMsg('Please enter your full name.');
@@ -66,6 +91,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMsg('Passwords do not match. Please ensure both passwords are identical.');
         return;
       }
+    }
+
+    // 3. Terms Agreement
+    if (!agreeToTerms) {
+      setErrorMsg('You must agree to the Terms & Conditions and Privacy Policy to continue.');
+      return;
     }
 
     setLoading(true);
@@ -85,7 +116,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setUser(mockUser, { access_token: 'demo_token' } as any);
         addToast({
           title: mode === 'register' ? 'Account Created!' : 'Welcome Back!',
-          description: `Signed in as ${emailTrimmed}.`,
+          description: `Signed in as ${emailTrimmed}.${receiveEmailUpdates ? ' Email updates enabled.' : ''}`,
           type: 'success',
         });
         onClose();
@@ -165,6 +196,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const handleNavigateLink = (route: string) => {
+    onClose();
+    if (onNavigate) {
+      onNavigate(route);
+    } else {
+      window.location.hash = route;
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="md">
       <div className="space-y-6">
@@ -193,7 +233,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={handleGoogleAuth}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-brand-blue/50 text-sm font-semibold text-text-primary transition-all shadow-sm focus:outline-none"
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-brand-blue/50 text-sm font-semibold text-text-primary transition-all shadow-sm focus:outline-none cursor-pointer"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -238,15 +278,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             />
           )}
 
-          <Input
-            label="Email Address"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            leftIcon={<Mail className="w-4 h-4" />}
-            required
-          />
+          <div className="space-y-1">
+            <Input
+              label="Email Address"
+              type="email"
+              placeholder="name@gmail.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errorMsg) setErrorMsg(null);
+              }}
+              leftIcon={<Mail className="w-4 h-4" />}
+              required
+            />
+            {email.trim() && !validateEmail(email) && (
+              <p className="text-[11px] text-status-error flex items-center gap-1 font-medium pl-1">
+                <AlertCircle className="w-3 h-3" />
+                Please enter a valid email format (e.g. name@gmail.com)
+              </p>
+            )}
+          </div>
 
           {mode !== 'forgot' && (
             <Input
@@ -304,10 +355,75 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
+          {/* 2 EXPLICIT INTERACTIVE CONSENT CHECKBOXES */}
+          {mode !== 'forgot' && (
+            <div className="space-y-2.5 p-3.5 rounded-xl bg-card-elevated border border-border-subtle shadow-sm my-2">
+              {/* 1. Terms and Conditions Consent Checkbox */}
+              <div
+                onClick={() => setAgreeToTerms(!agreeToTerms)}
+                className="flex items-start gap-2.5 cursor-pointer group select-none"
+              >
+                <div
+                  className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                    agreeToTerms
+                      ? 'bg-brand-blue border-brand-blue text-white'
+                      : 'bg-card border-border-default hover:border-brand-blue'
+                  }`}
+                >
+                  {agreeToTerms && <Check className="w-3 h-3 stroke-[3]" />}
+                </div>
+                <span className="leading-snug text-[11px] text-text-primary">
+                  I agree to the{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigateLink('terms');
+                    }}
+                    className="text-brand-cyan hover:underline font-bold"
+                  >
+                    Terms & Conditions
+                  </button>{' '}
+                  and{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigateLink('privacy');
+                    }}
+                    className="text-brand-cyan hover:underline font-bold"
+                  >
+                    Privacy Policy
+                  </button>
+                  <span className="text-status-error font-bold ml-0.5">*</span>
+                </span>
+              </div>
+
+              {/* 2. Email Updates Consent Checkbox */}
+              <div
+                onClick={() => setReceiveEmailUpdates(!receiveEmailUpdates)}
+                className="flex items-start gap-2.5 cursor-pointer group select-none pt-0.5"
+              >
+                <div
+                  className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                    receiveEmailUpdates
+                      ? 'bg-brand-blue border-brand-blue text-white'
+                      : 'bg-card border-border-default hover:border-brand-blue'
+                  }`}
+                >
+                  {receiveEmailUpdates && <Check className="w-3 h-3 stroke-[3]" />}
+                </div>
+                <span className="leading-snug text-text-secondary text-[11px]">
+                  I want to receive product updates, discounts, and tips via email.
+                </span>
+              </div>
+            </div>
+          )}
+
           {errorMsg && (
-            <div className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2 animate-in fade-in-50">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
+            <div className="p-3 rounded-xl bg-status-error/15 border border-status-error/40 text-status-error text-xs flex items-center gap-2 animate-in fade-in-50">
+              <AlertCircle className="w-4 h-4 shrink-0 text-status-error" />
+              <span className="font-medium">{errorMsg}</span>
             </div>
           )}
 

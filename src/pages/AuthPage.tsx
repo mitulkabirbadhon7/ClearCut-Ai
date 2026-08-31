@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Mail, Lock, User, ArrowLeft, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, AlertCircle, Eye, EyeOff, ShieldCheck, Check } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
@@ -17,7 +17,7 @@ import {
 
 interface AuthPageProps {
   onNavigate?: (route: string) => void;
-  initialMode?: 'login' | 'register';
+  initialMode?: 'login' | 'register' | 'forgot';
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'login' }) => {
@@ -28,23 +28,47 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // 1. Terms and Conditions Consent Checkbox
+  const [agreeToTerms, setAgreeToTerms] = useState(true);
+  // 2. Email Updates / Newsletter Checkbox
+  const [receiveEmailUpdates, setReceiveEmailUpdates] = useState(true);
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { addToast } = useAppStore();
   const { initializeAuth } = useAuthStore();
 
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  // Strict email validation
+  const validateEmail = (val: string): boolean => {
+    const trimmed = val.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(trimmed);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    const emailTrimmed = email.trim();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(emailTrimmed)) {
-      setErrorMsg('Please enter a valid email address (e.g. name@gmail.com).');
+    const emailTrimmed = email.trim().toLowerCase();
+
+    // 1. Strict Email Validation Check
+    if (!emailTrimmed) {
+      setErrorMsg('Please enter your email address.');
       return;
     }
 
+    if (!validateEmail(emailTrimmed)) {
+      setErrorMsg('Invalid email format. Please enter a valid email or Gmail address (e.g. yourname@gmail.com).');
+      return;
+    }
+
+    // 2. Password & Name Validation for Registration
     if (mode === 'register') {
       if (!fullName.trim()) {
         setErrorMsg('Please enter your full name.');
@@ -60,6 +84,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
       }
     }
 
+    // 3. Terms Agreement Checkbox Validation
+    if (!agreeToTerms) {
+      setErrorMsg('You must agree to the Terms & Conditions and Privacy Policy to continue.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -68,7 +98,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
           setIsLoading(false);
           addToast({
             title: mode === 'register' ? 'Account Created (Demo)' : 'Signed In (Demo)',
-            description: 'Working in demo mode.',
+            description: `Working in demo mode.${receiveEmailUpdates ? ' Email updates enabled.' : ''}`,
             type: 'info',
           });
           if (onNavigate) onNavigate('dashboard');
@@ -90,7 +120,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
         await initializeAuth();
         addToast({
           title: 'Account Created Successfully!',
-          description: 'Welcome to ClearCut AI! 5 Free Daily Credits added to your account.',
+          description: `Welcome to ClearCut AI! 5 Free Daily Credits added.${receiveEmailUpdates ? ' Subscribed to email updates.' : ''}`,
           type: 'success',
         });
         if (onNavigate) onNavigate('dashboard');
@@ -139,7 +169,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-12">
+    <div className="min-h-[85vh] flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300">
       <div className="w-full max-w-md space-y-6">
         {/* Back navigation */}
         <div className="flex justify-between items-center">
@@ -156,13 +186,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
 
         <Card variant="elevated" className="border-border-subtle shadow-2xl p-6 sm:p-8">
           <CardHeader className="p-0 pb-6 text-center">
-            <CardTitle className="text-2xl font-extrabold">
-              {mode === 'login' && 'Welcome Back'}
+            <CardTitle className="text-2xl font-extrabold text-text-primary">
+              {mode === 'login' && 'Sign In to Your Account'}
               {mode === 'register' && 'Create Your Free Account'}
               {mode === 'forgot' && 'Reset Your Password'}
             </CardTitle>
-            <CardDescription>
-              {mode === 'login' && 'Sign in to access your image cutouts, credits, and history.'}
+            <CardDescription className="text-text-secondary">
+              {mode === 'login' && 'Sign in to access your cutout studio, credits, and history.'}
               {mode === 'register' && 'Get 5 free background removals every single day.'}
               {mode === 'forgot' && 'Enter your registered email to receive a recovery link.'}
             </CardDescription>
@@ -175,7 +205,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-border text-sm font-semibold text-text-primary transition-colors shadow-sm"
+                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-card-elevated hover:bg-card-hover border border-border-subtle hover:border-border text-sm font-semibold text-text-primary transition-colors shadow-sm cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -220,15 +250,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
                 />
               )}
 
-              <Input
-                label="Email Address"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leftIcon={<Mail className="w-4 h-4" />}
-                required
-              />
+              <div className="space-y-1">
+                <Input
+                  label="Email Address"
+                  type="email"
+                  placeholder="name@gmail.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  leftIcon={<Mail className="w-4 h-4" />}
+                  required
+                />
+                {email.trim() && !validateEmail(email) && (
+                  <p className="text-[11px] text-status-error flex items-center gap-1 font-medium pl-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Please enter a valid email format (e.g. name@gmail.com)
+                  </p>
+                )}
+              </div>
 
               {mode !== 'forgot' && (
                 <Input
@@ -286,10 +327,76 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
                 </div>
               )}
 
+              {/* 2 EXPLICIT INTERACTIVE CONSENT CHECKBOXES */}
+              {mode !== 'forgot' && (
+                <div className="space-y-3 p-4 rounded-xl bg-card-elevated border border-border-subtle shadow-sm my-3">
+                  {/* 1st Checkbox: Terms & Conditions */}
+                  <div
+                    onClick={() => setAgreeToTerms(!agreeToTerms)}
+                    className="flex items-start gap-3 cursor-pointer group select-none"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                        agreeToTerms
+                          ? 'bg-brand-blue border-brand-blue text-white shadow-sm'
+                          : 'bg-card border-border-default hover:border-brand-blue'
+                      }`}
+                    >
+                      {agreeToTerms && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </div>
+                    <span className="text-xs text-text-primary leading-relaxed">
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onNavigate) onNavigate('terms');
+                        }}
+                        className="text-brand-cyan hover:underline font-bold"
+                      >
+                        Terms & Conditions
+                      </button>{' '}
+                      and{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onNavigate) onNavigate('privacy');
+                        }}
+                        className="text-brand-cyan hover:underline font-bold"
+                      >
+                        Privacy Policy
+                      </button>
+                      <span className="text-status-error font-bold ml-1">*</span>
+                    </span>
+                  </div>
+
+                  {/* 2nd Checkbox: Email Updates */}
+                  <div
+                    onClick={() => setReceiveEmailUpdates(!receiveEmailUpdates)}
+                    className="flex items-start gap-3 cursor-pointer group select-none pt-1"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                        receiveEmailUpdates
+                          ? 'bg-brand-blue border-brand-blue text-white shadow-sm'
+                          : 'bg-card border-border-default hover:border-brand-blue'
+                      }`}
+                    >
+                      {receiveEmailUpdates && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </div>
+                    <span className="text-xs text-text-secondary leading-relaxed">
+                      I want to receive product updates, news, and special promotional offers via email.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message Box */}
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error text-xs flex items-center gap-2 animate-in fade-in-50">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errorMsg}</span>
+                <div className="p-3.5 rounded-xl bg-status-error/15 border border-status-error/40 text-status-error text-xs flex items-center gap-2.5 animate-in fade-in-50">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-status-error" />
+                  <span className="font-medium">{errorMsg}</span>
                 </div>
               )}
 

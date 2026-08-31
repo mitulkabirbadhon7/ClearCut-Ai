@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Shield, Heart } from 'lucide-react';
+import { Shield, Heart, HelpCircle, Mail } from 'lucide-react';
 
 interface FooterProps {
   onNavigate?: (route: string) => void;
@@ -18,33 +18,33 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="border-t border-border-subtle bg-card/60 backdrop-blur-md pt-16 pb-12 text-text-secondary text-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-border-subtle">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 pb-12 border-b border-border-subtle">
           {/* Col 1: Brand & Bio */}
-          <div className="md:col-span-1 space-y-4">
-            <button onClick={(e) => handleNav('home', e)} className="text-left">
+          <div className="space-y-4">
+            <button onClick={(e) => handleNav('home', e)} className="text-left focus:outline-none">
               <BrandLogo size="md" />
             </button>
             <p className="text-xs text-text-muted leading-relaxed">
-              Fast, simple, and professional AI-powered background removal. Download high-resolution transparent PNG cutouts in seconds.
+              Fast, accurate, and professional AI-powered background removal. Download high-resolution transparent PNG cutouts in seconds.
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card-elevated border border-border-subtle text-xs text-brand-cyan">
               <Shield className="w-3.5 h-3.5" />
-              <span>Privacy-First (24h Ephemeral Storage)</span>
+              <span>Privacy-First (24h Auto-Purge)</span>
             </div>
           </div>
 
-          {/* Col 2: Product */}
+          {/* Col 2: Product & Auth */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Product</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Product & Access</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <button onClick={(e) => handleNav('home', e)} className="hover:text-brand-cyan transition-colors">
-                  One-Click Background Removal
+                  Cutout Studio (Home)
                 </button>
               </li>
               <li>
                 <button onClick={(e) => handleNav('features', e)} className="hover:text-brand-cyan transition-colors">
-                  Features & AI Edge Precision
+                  Features & Edge Precision
                 </button>
               </li>
               <li>
@@ -58,40 +58,51 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
-                <button onClick={(e) => handleNav('dashboard', e)} className="hover:text-brand-cyan transition-colors">
-                  User Dashboard & History
+                <button onClick={(e) => handleNav('login', e)} className="hover:text-brand-cyan transition-colors">
+                  Sign In to Account
+                </button>
+              </li>
+              <li>
+                <button onClick={(e) => handleNav('register', e)} className="hover:text-brand-cyan transition-colors">
+                  Register (5 Free Daily Credits)
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Payment & Market */}
+          {/* Col 3: Support & Help */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Payment & Trust</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Help & Support</h4>
             <ul className="space-y-2 text-xs">
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-                <span className="font-semibold text-text-primary">Official bKash Payment Gateway</span>
+              <li>
+                <button onClick={(e) => handleNav('help', e)} className="hover:text-brand-cyan transition-colors font-medium text-text-primary flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-brand-cyan" />
+                  Help Center & FAQs
+                </button>
               </li>
               <li>
-                <span className="text-text-muted">Instant BDT Checkout & Automatic Crediting</span>
+                <button onClick={(e) => handleNav('contact', e)} className="hover:text-brand-cyan transition-colors flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-brand-pink" />
+                  Contact Support Form
+                </button>
               </li>
-              <li>
-                <span className="text-text-muted">Bank-grade SSL Encryption</span>
+              <li className="pt-2 text-text-muted">
+                <span className="font-semibold text-text-primary block">Official bKash Gateway</span>
+                <span className="text-[11px]">Automated instant top-up & invoice delivery</span>
               </li>
-              <li>
-                <span className="text-text-muted">No Credit Card Required</span>
+              <li className="text-[11px] text-text-muted">
+                Response time: Within 2-4 hours
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Legal */}
+          {/* Col 4: Legal & Company */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Company & Legal</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <button onClick={(e) => handleNav('privacy', e)} className="hover:text-brand-cyan transition-colors">
-                  Privacy Policy
+                <button onClick={(e) => handleNav('about', e)} className="hover:text-brand-cyan transition-colors">
+                  About ClearCut AI
                 </button>
               </li>
               <li>
@@ -100,14 +111,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
-                <button onClick={(e) => handleNav('about', e)} className="hover:text-brand-cyan transition-colors">
-                  About ClearCut AI
+                <button onClick={(e) => handleNav('privacy', e)} className="hover:text-brand-cyan transition-colors">
+                  Privacy Policy
                 </button>
               </li>
               <li>
-                <button onClick={(e) => handleNav('contact', e)} className="hover:text-brand-cyan transition-colors">
-                  Contact Support
-                </button>
+                <a
+                  href="mailto:mitulkabirbadhon7@gmail.com"
+                  className="hover:text-brand-cyan transition-colors text-text-muted block break-all text-[11px]"
+                >
+                  mitulkabirbadhon7@gmail.com
+                </a>
               </li>
             </ul>
           </div>
@@ -119,6 +133,19 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <span>© {new Date().getFullYear()} ClearCut AI. Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
             <span>by Mitul Kabir Badhon</span>
+          </div>
+          <div className="flex items-center gap-4 text-[11px]">
+            <button onClick={(e) => handleNav('terms', e)} className="hover:underline">
+              Terms & Conditions
+            </button>
+            <span>•</span>
+            <button onClick={(e) => handleNav('privacy', e)} className="hover:underline">
+              Privacy & Cookies
+            </button>
+            <span>•</span>
+            <button onClick={(e) => handleNav('help', e)} className="hover:underline">
+              Support Center
+            </button>
           </div>
         </div>
       </div>
