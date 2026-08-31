@@ -115,14 +115,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   Privacy Policy
                 </button>
               </li>
-              <li>
-                <a
-                  href="mailto:mitulkabirbadhon7@gmail.com"
-                  className="hover:text-brand-cyan transition-colors text-text-muted block break-all text-[11px]"
-                >
-                  mitulkabirbadhon7@gmail.com
-                </a>
-              </li>
             </ul>
           </div>
         </div>
