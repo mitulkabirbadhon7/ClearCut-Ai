@@ -44,6 +44,9 @@ export function formatAuthError(err: any): string {
   if (message.includes('rate limit') || message.includes('too many requests')) {
     return 'Too many login attempts. Please wait 60 seconds before trying again.';
   }
+  if (message.includes('unsupported provider') || message.includes('provider is not enabled')) {
+    return 'Google Sign-In is not enabled in your Supabase Dashboard yet. Enable Google in Supabase ➔ Authentication ➔ Providers, or sign in with your email & password.';
+  }
   if (message.includes('valid email') || message.includes('invalid email') || message.includes('unable to validate')) {
     return 'Please enter a valid email address (e.g. name@gmail.com).';
   }

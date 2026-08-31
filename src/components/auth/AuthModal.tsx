@@ -107,9 +107,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
       await signInWithGoogle();
     } catch (err: any) {
+      const msg = formatAuthError(err);
+      setErrorMsg(msg);
       addToast({
-        title: 'Google Sign In Failed',
-        description: err?.message || 'Failed to initialize Google OAuth.',
+        title: 'Google Sign In',
+        description: msg,
         type: 'error',
       });
     }

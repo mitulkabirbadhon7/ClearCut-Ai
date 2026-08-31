@@ -102,9 +102,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate, initialMode = 'l
       }
       await signInWithGoogle();
     } catch (err: any) {
+      const msg = formatAuthError(err);
+      setErrorMsg(msg);
       addToast({
-        title: 'Google OAuth Failed',
-        description: err?.message || 'Could not sign in with Google.',
+        title: 'Google Sign In',
+        description: msg,
         type: 'error',
       });
     }
