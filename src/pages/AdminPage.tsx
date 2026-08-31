@@ -308,7 +308,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     );
 
     if (supabase && userId !== 'usr_master') {
-      await supabase.rpc('add_user_credits_atomic', { p_user_id: userId, p_amount: amount });
+      try {
+        const { data: currentCreds } = await supabase
+          .from('credits')
+          .select('purchased_credits')
+          .eq('user_id', userId)
+          .single();
+        if (currentCreds) {
+          await supabase
+            .from('credits')
+            .update({ purchased_credits: (currentCreds.purchased_credits || 0) + amount })
+            .eq('user_id', userId);
+        }
+      } catch (err) {
+        console.warn('Credits update notice:', err);
+      }
     }
 
     addToast({
@@ -318,7 +332,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     });
   };
 
-  const handleDeductCredits = (userId: string, amount: number) => {
+  const handleDeductCredits = async (userId: string, amount: number) => {
     setUsersList((prev) =>
       prev.map((u) =>
         u.id === userId
@@ -326,6 +340,25 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           : u
       )
     );
+
+    if (supabase && userId !== 'usr_master') {
+      try {
+        const { data: currentCreds } = await supabase
+          .from('credits')
+          .select('purchased_credits')
+          .eq('user_id', userId)
+          .single();
+        if (currentCreds) {
+          await supabase
+            .from('credits')
+            .update({ purchased_credits: Math.max(0, (currentCreds.purchased_credits || 0) - amount) })
+            .eq('user_id', userId);
+        }
+      } catch (err) {
+        console.warn('Credits deduction notice:', err);
+      }
+    }
+
     addToast({
       title: 'Credits Deducted',
       description: `Deducted -${amount} credits from user account.`,
