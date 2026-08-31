@@ -30,8 +30,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 /**
  * Executes real AI neural background removal.
  * Uses in-browser deep-learning segmentation (@imgly/background-removal)
- * with monotonic, strictly forward-advancing progress telemetry
- * and persistent 24h Cloudinary / base64 storage.
+ * with high-speed CDN model weights and monotonic progress telemetry.
  */
 export async function executeAiBackgroundRemoval(
   imageSource: File | Blob | string,
@@ -45,36 +44,52 @@ export async function executeAiBackgroundRemoval(
       options.onProgress(10, 'Initializing neural network...');
     }
 
-    // Run in-browser AI segmentation model with smooth weighted progress
-    const blob = await removeBackground(imageSource, {
-      progress: (key: string, current: number, total: number) => {
-        if (options?.signal?.aborted) return;
-        if (total > 0 && options?.onProgress) {
-          const ratio = Math.min(Math.max(current / total, 0), 1);
-          let calculatedPct = 15;
-          let stepName = 'Extracting foreground subject...';
+    const progressHandler = (key: string, current: number, total: number) => {
+      if (options?.signal?.aborted) return;
+      if (total > 0 && options?.onProgress) {
+        const ratio = Math.min(Math.max(current / total, 0), 1);
+        let calculatedPct = 15;
+        let stepName = 'Extracting foreground subject...';
 
-          if (key.includes('fetch') || key.includes('download')) {
-            // Model downloading phase: 15% -> 45%
-            calculatedPct = Math.round(15 + ratio * 30);
-            stepName = 'Loading neural model weights...';
-          } else if (key.includes('compute') || key.includes('inference')) {
-            // Neural inference execution phase: 45% -> 92%
-            calculatedPct = Math.round(45 + ratio * 47);
-            stepName = 'Extracting foreground subject...';
-          } else {
-            calculatedPct = Math.round(20 + ratio * 70);
-            stepName = 'Removing background artifacts...';
-          }
-
-          // Monotonic progress guarantee: never jump backward
-          if (calculatedPct > maxReportedPct) {
-            maxReportedPct = Math.min(calculatedPct, 95);
-            options.onProgress(maxReportedPct, stepName);
-          }
+        if (key.includes('fetch') || key.includes('download')) {
+          // Model downloading phase: 15% -> 50%
+          calculatedPct = Math.round(15 + ratio * 35);
+          stepName = 'Loading neural model weights...';
+        } else if (key.includes('compute') || key.includes('inference')) {
+          // Neural inference execution phase: 50% -> 92%
+          calculatedPct = Math.round(50 + ratio * 42);
+          stepName = 'Extracting foreground subject...';
+        } else {
+          calculatedPct = Math.round(20 + ratio * 70);
+          stepName = 'Removing background artifacts...';
         }
-      },
-    });
+
+        // Monotonic progress guarantee: never jump backward
+        if (calculatedPct > maxReportedPct) {
+          maxReportedPct = Math.min(calculatedPct, 95);
+          options.onProgress(maxReportedPct, stepName);
+        }
+      }
+    };
+
+    let blob: Blob;
+
+    try {
+      // Primary fast model loader with high-availability CDN
+      blob = await removeBackground(imageSource, {
+        publicPath: 'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/',
+        model: 'isnet_fp16',
+        progress: progressHandler,
+      });
+    } catch (primaryErr) {
+      console.warn('Primary model loader notice, trying fallback CDN:', primaryErr);
+      // Secondary fallback CDN (jsdelivr)
+      blob = await removeBackground(imageSource, {
+        publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal-data@1.7.0/dist/',
+        model: 'isnet_fp16',
+        progress: progressHandler,
+      });
+    }
 
     if (options?.signal?.aborted) {
       return { success: false, error: 'Processing cancelled by user.' };
@@ -92,17 +107,17 @@ export async function executeAiBackgroundRemoval(
       try {
         const cutoutFile = new File([blob], `cutout_${Date.now()}.png`, { type: 'image/png' });
         const uploadRes = await uploadImageToCloudinary(cutoutFile);
-        if (uploadRes.success && uploadRes.secureUrl) {
+        if (uploadRes.success && uploadRes.secureUrl && !uploadRes.isFallback) {
           processedImageUrl = uploadRes.secureUrl;
         }
       } catch (uploadErr) {
         console.warn('Cloudinary cutout sync fallback:', uploadErr);
       }
     } else {
-      // Offline fallback: convert small images to base64 data url for persistence
+      // Base64 data URL for offline reload persistence
       try {
         const dataUrl = await blobToDataUrl(blob);
-        if (dataUrl.length < 2000000) {
+        if (dataUrl.length < 3000000) {
           processedImageUrl = dataUrl;
         }
       } catch {
