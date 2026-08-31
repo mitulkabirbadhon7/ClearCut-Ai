@@ -149,7 +149,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             },
           ].map((item, idx) => (
             <Card key={idx} variant="elevated" className="relative overflow-hidden p-6 space-y-4">
-              <div className="text-4xl font-black text-brand-cyan/20">{item.step}</div>
+              <div className="text-4xl font-black text-brand-blue dark:text-brand-cyan/40">{item.step}</div>
               <h3 className="text-lg font-bold text-text-primary">{item.title}</h3>
               <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">{item.desc}</p>
             </Card>

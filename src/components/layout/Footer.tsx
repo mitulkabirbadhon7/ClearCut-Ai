@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { Shield, Sparkles, Heart } from 'lucide-react';
+import { Shield, Heart } from 'lucide-react';
 
 interface FooterProps {
   onNavigate?: (route: string) => void;
@@ -91,7 +91,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <ul className="space-y-2 text-xs">
               <li>
                 <button onClick={(e) => handleNav('privacy', e)} className="hover:text-brand-cyan transition-colors">
-                  Privacy Policy (24-Hour Purge)
+                  Privacy Policy
                 </button>
               </li>
               <li>
@@ -118,14 +118,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-1.5">
             <span>© {new Date().getFullYear()} ClearCut AI. Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
-            <span>for creators & businesses.</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1 text-text-secondary font-medium">
-              <Sparkles className="w-3 h-3 text-brand-cyan" />
-              <span>Bangladesh Market Ready</span>
-            </span>
+            <span>by Mitul Kabir Badhon</span>
           </div>
         </div>
       </div>
