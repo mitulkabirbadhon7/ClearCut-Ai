@@ -1,0 +1,247 @@
+{
+  "name": "ClearCut AI - Official bKash Tokenized Merchant Payment Gateway",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bkash-create-payment",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Create Payment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 200],
+      "webhookId": "bkash-create-payment-webhook"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant",
+        "options": {},
+        "headers": {
+          "Content-Type": "application/json",
+          "username": "={{$env.BKASH_USERNAME}}",
+          "password": "={{$env.BKASH_PASSWORD}}"
+        },
+        "bodyParameters": {
+          "app_key": "={{$env.BKASH_APP_KEY}}",
+          "app_secret": "={{$env.BKASH_APP_SECRET}}"
+        }
+      },
+      "name": "bKash Grant Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/create",
+        "options": {},
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "={{ $('bKash Grant Token').first().json.id_token }}",
+          "X-APP-Key": "={{$env.BKASH_APP_KEY}}"
+        },
+        "bodyParameters": {
+          "mode": "0011",
+          "payerReference": "={{ $('Webhook Create Payment').first().json.body.user_id }}",
+          "callbackURL": "={{ $env.APP_URL + '/#payment-callback' }}",
+          "amount": "={{ $('Webhook Create Payment').first().json.body.amount }}",
+          "currency": "BDT",
+          "intent": "sale",
+          "merchantInvoiceNumber": "={{ 'INV_' + Date.now() }}"
+        }
+      },
+      "name": "bKash Create Payment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/transactions",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}",
+          "Content-Type": "application/json"
+        },
+        "bodyParameters": {
+          "user_id": "={{ $('Webhook Create Payment').first().json.body.user_id }}",
+          "provider": "bkash",
+          "provider_payment_id": "={{ $json.paymentID }}",
+          "amount_bdt": "={{ $('Webhook Create Payment').first().json.body.amount }}",
+          "currency": "BDT",
+          "status": "pending"
+        }
+      },
+      "name": "Save Pending Transaction in Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"paymentID\": \"{{ $('bKash Create Payment').first().json.paymentID }}\",\n  \"bkashURL\": \"{{ $('bKash Create Payment').first().json.bkashURL }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Return bKash Checkout URL",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1160, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bkash-execute-payment",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Execute Payment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 440],
+      "webhookId": "bkash-execute-payment-webhook"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/execute",
+        "options": {},
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "={{ $('bKash Grant Token').first().json.id_token }}",
+          "X-APP-Key": "={{$env.BKASH_APP_KEY}}"
+        },
+        "bodyParameters": {
+          "paymentID": "={{ $json.body.paymentID }}"
+        }
+      },
+      "name": "bKash Execute Payment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [440, 440]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/rpc/add_user_credits_atomic",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}",
+          "Content-Type": "application/json"
+        },
+        "bodyParameters": {
+          "p_user_id": "={{ $('Webhook Execute Payment').first().json.body.user_id }}",
+          "p_credits_to_add": "={{ $('Webhook Execute Payment').first().json.body.credits }}",
+          "p_payment_id": "={{ $json.paymentID }}",
+          "p_trx_id": "={{ $json.trxID }}",
+          "p_amount": "={{ $json.amount }}"
+        }
+      },
+      "name": "Atomic Supabase Credit Fulfillment (RPC)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 440]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Payment completed and credits fulfilled.\",\n  \"trxID\": \"{{ $('bKash Execute Payment').first().json.trxID }}\",\n  \"amount\": \"{{ $('bKash Execute Payment').first().json.amount }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Return Execution Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 440]
+    }
+  ],
+  "connections": {
+    "Webhook Create Payment": {
+      "main": [
+        [
+          {
+            "node": "bKash Grant Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bKash Grant Token": {
+      "main": [
+        [
+          {
+            "node": "bKash Create Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bKash Create Payment": {
+      "main": [
+        [
+          {
+            "node": "Save Pending Transaction in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Pending Transaction in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Return bKash Checkout URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Execute Payment": {
+      "main": [
+        [
+          {
+            "node": "bKash Execute Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bKash Execute Payment": {
+      "main": [
+        [
+          {
+            "node": "Atomic Supabase Credit Fulfillment (RPC)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atomic Supabase Credit Fulfillment (RPC)": {
+      "main": [
+        [
+          {
+            "node": "Return Execution Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

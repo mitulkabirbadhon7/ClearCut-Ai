@@ -11,6 +11,7 @@ import { ContactPage } from '@/pages/ContactPage';
 import { AuthPage } from '@/pages/AuthPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { PaymentCallbackPage } from '@/pages/PaymentCallbackPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { useAppStore } from '@/store/useAppStore';
@@ -29,8 +30,9 @@ export default function App() {
   // Synchronize route with URL hash for clean address bar state and bookmarking
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '') || 'home';
-      setActiveRoute(hash);
+      const fullHash = window.location.hash.replace('#', '') || 'home';
+      const cleanRoute = fullHash.split('?')[0] || 'home';
+      setActiveRoute(cleanRoute);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -70,6 +72,8 @@ export default function App() {
       case 'login':
       case 'register':
         return <AuthPage onNavigate={navigateTo} />;
+      case 'payment-callback':
+        return <PaymentCallbackPage onNavigate={navigateTo} />;
       case 'dashboard':
         return (
           <ProtectedRoute onNavigate={navigateTo}>
