@@ -1,11 +1,33 @@
-# n8n Cloud Workflow Architecture — SnapCut AI
+# n8n Cloud Automation Architecture — ClearCut AI
 
-## 1. Role of n8n in SnapCut AI
-n8n Cloud acts as the **Serverless Business Logic Engine and Secure Gateway** for SnapCut AI. It protects proprietary third-party API keys (AI Background Removal Provider, bKash Merchant Credentials, Supabase Service Role Key) from ever being exposed to the browser client.
+## 1. Overview
+ClearCut AI delegates AI model execution, credit checks, multi-provider failover, and payment webhooks to **n8n Cloud**.
+
+### Workflow JSON Files Location:
+- [`n8n/workflows/01_remove_background_pipeline.json`](file:///d:/Development/New%20folder/Remove_BG/n8n/workflows/01_remove_background_pipeline.json) — End-to-end background removal pipeline with credit deduction, AI failover, and job logging.
+- [`n8n/workflows/02_ephemeral_cleanup_cron.json`](file:///d:/Development/New%20folder/Remove_BG/n8n/workflows/02_ephemeral_cleanup_cron.json) — Hourly media lifecycle cleanup cron.
 
 ---
 
-## 2. Core Workflows Overview
+## 2. Step-by-Step n8n Import Guide
+
+1. Open your **n8n Cloud Dashboard** (e.g. `https://your-instance.app.n8n.cloud`).
+2. Click **Workflows** ➔ **`+ Add Workflow`**.
+3. In the top-right menu (`...`), click **Import from File** (or paste the JSON from `01_remove_background_pipeline.json`).
+4. In n8n **Settings** ➔ **Variables / Environment**, configure:
+   - `SUPABASE_URL`: `https://asnlfskuuvrthmgvdubc.supabase.co`
+   - `SUPABASE_SERVICE_ROLE_KEY`: *(From Supabase Project Settings ➔ API)*
+   - `CLIPDROP_API_KEY`: *(From Clipdrop / Replicate)*
+   - `PHOTOROOM_API_KEY`: *(Optional fallback provider)*
+5. Click **Save** and toggle the workflow to **Active**!
+6. Copy the **Production Webhook URL** (e.g. `https://your-instance.app.n8n.cloud/webhook/remove-background`) and save it to your local `.env`:
+   ```env
+   VITE_N8N_WEBHOOK_URL=https://your-instance.app.n8n.cloud/webhook/remove-background
+   ```
+
+---
+
+## 3. Core Workflows Overview
 
 ### Workflow 1: AI Background Removal Orchestration
 - **Trigger**: Webhook `POST /webhook/process-image`

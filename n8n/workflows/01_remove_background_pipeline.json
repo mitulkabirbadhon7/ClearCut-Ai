@@ -1,0 +1,273 @@
+{
+  "name": "ClearCut AI - Background Removal Pipeline with Failover & Credit Ledger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "remove-background",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Ingestion",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "clearcut-bg-removal-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract incoming parameters\nconst body = $input.item.json.body || {};\nconst headers = $input.item.json.headers || {};\n\nconst userId = body.user_id || 'anonymous';\nconst imageUrl = body.image_url;\nconst format = body.format || 'png';\nconst authHeader = headers.authorization || '';\n\nif (!imageUrl) {\n  throw new Error('Missing required parameter: image_url');\n}\n\nreturn {\n  json: {\n    userId,\n    imageUrl,\n    format,\n    authHeader,\n    startTime: Date.now()\n  }\n};"
+      },
+      "name": "Validate Request Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/rpc/deduct_user_credit",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}",
+          "Content-Type": "application/json"
+        },
+        "bodyParameters": {
+          "p_user_id": "={{ $json.userId }}"
+        }
+      },
+      "name": "Deduct User Credit (Atomic RPC)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [640, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Credit Check Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Insufficient credits. Please upgrade or wait for the daily reset.\",\n  \"code\": \"INSUFFICIENT_CREDITS\"\n}",
+        "options": {
+          "responseCode": 402
+        }
+      },
+      "name": "Return 402 Insufficient Credits",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1080, 480]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://clipdrop-api.co/remove-background/v1",
+        "options": {},
+        "headers": {
+          "x-api-key": "={{$env.CLIPDROP_API_KEY}}"
+        },
+        "bodyParameters": {
+          "image_url": "={{ $('Validate Request Payload').first().json.imageUrl }}"
+        }
+      },
+      "name": "Primary AI Provider (Clipdrop/Replicate)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1080, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error ? false : true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Primary AI Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1300, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.photoroom.com/v1/segment",
+        "options": {},
+        "headers": {
+          "x-api-key": "={{$env.PHOTOROOM_API_KEY}}",
+          "Content-Type": "application/json"
+        },
+        "bodyParameters": {
+          "image_url": "={{ $('Validate Request Payload').first().json.imageUrl }}"
+        }
+      },
+      "name": "Secondary Fallback AI (PhotoRoom/Cloudinary)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1520, 360],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/processing_jobs",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}",
+          "Content-Type": "application/json",
+          "Prefer": "return=representation"
+        },
+        "bodyParameters": {
+          "user_id": "={{ $('Validate Request Payload').first().json.userId }}",
+          "status": "completed",
+          "original_image_url": "={{ $('Validate Request Payload').first().json.imageUrl }}",
+          "processed_image_url": "={{ $json.output_url || $('Validate Request Payload').first().json.imageUrl }}",
+          "duration_ms": "={{ Date.now() - $('Validate Request Payload').first().json.startTime }}"
+        }
+      },
+      "name": "Record Job in Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1740, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"job_id\": \"{{ $json[0].id }}\",\n  \"processed_image_url\": \"{{ $json[0].processed_image_url }}\",\n  \"duration_ms\": {{ $json[0].duration_ms }},\n  \"expires_at\": \"{{ $json[0].expires_at }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Return 200 Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1960, 200]
+    }
+  ],
+  "connections": {
+    "Webhook Ingestion": {
+      "main": [
+        [
+          {
+            "node": "Validate Request Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request Payload": {
+      "main": [
+        [
+          {
+            "node": "Deduct User Credit (Atomic RPC)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduct User Credit (Atomic RPC)": {
+      "main": [
+        [
+          {
+            "node": "Credit Check Passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Credit Check Passed?": {
+      "main": [
+        [
+          {
+            "node": "Primary AI Provider (Clipdrop/Replicate)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return 402 Insufficient Credits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Primary AI Provider (Clipdrop/Replicate)": {
+      "main": [
+        [
+          {
+            "node": "Primary AI Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Primary AI Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Record Job in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Secondary Fallback AI (PhotoRoom/Cloudinary)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Secondary Fallback AI (PhotoRoom/Cloudinary)": {
+      "main": [
+        [
+          {
+            "node": "Record Job in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Job in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Return 200 Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

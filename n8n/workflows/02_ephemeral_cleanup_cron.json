@@ -1,0 +1,118 @@
+{
+  "name": "ClearCut AI - Ephemeral 24-Hour Media Lifecycle Auto-Purge Cron",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Hourly Cron Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/processing_jobs",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}"
+        },
+        "queryParameters": {
+          "expires_at": "lt.{{ new Date().toISOString() }}",
+          "status": "neq.expired",
+          "limit": "100"
+        }
+      },
+      "name": "Query Expired Jobs in Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length || 0 }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Any Expired Jobs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "PATCH",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/processing_jobs",
+        "options": {},
+        "headers": {
+          "apikey": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}",
+          "Authorization": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_ROLE_KEY }}",
+          "Content-Type": "application/json"
+        },
+        "queryParameters": {
+          "expires_at": "lt.{{ new Date().toISOString() }}",
+          "status": "neq.expired"
+        },
+        "bodyParameters": {
+          "status": "expired",
+          "original_image_url": null,
+          "processed_image_url": null
+        }
+      },
+      "name": "Mark Jobs Expired & Clear Media URLs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [900, 200]
+    }
+  ],
+  "connections": {
+    "Hourly Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Query Expired Jobs in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Expired Jobs in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Any Expired Jobs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Expired Jobs?": {
+      "main": [
+        [
+          {
+            "node": "Mark Jobs Expired & Clear Media URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

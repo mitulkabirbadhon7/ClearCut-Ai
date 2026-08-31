@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { validateImageDimensions } from '@/lib/imageValidator';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
+import { triggerBackgroundRemoval } from '@/lib/api';
 
 export type ProcessingStatus =
   | 'idle'
@@ -131,18 +132,32 @@ export const useProcessingStore = create<ProcessingState>((set, get) => ({
       uploadedUrl: uploadRes.secureUrl,
       status: 'processing',
       uploadProgress: 100,
-      processingProgress: 20,
+      processingProgress: 30,
     });
 
-    // In Phase 7, n8n webhook triggers real AI model. For now, simulate smooth processing transition
-    let simulated = 20;
-    const procInterval = setInterval(() => {
-      simulated += 15;
-      set({ processingProgress: Math.min(simulated, 90) });
-      if (simulated >= 90) {
-        clearInterval(procInterval);
-      }
-    }, 250);
+    const aiRes = await triggerBackgroundRemoval(
+      {
+        imageUrl: uploadRes.secureUrl,
+      },
+      controller.signal
+    );
+
+    if (!aiRes.success || !aiRes.processed_image_url) {
+      set({
+        status: 'error',
+        error: aiRes.error || 'AI background removal failed. Please try again.',
+        abortController: null,
+      });
+      return;
+    }
+
+    set({
+      processedUrl: aiRes.processed_image_url,
+      jobId: aiRes.job_id || null,
+      status: 'completed',
+      processingProgress: 100,
+      abortController: null,
+    });
   },
 
   cancelOperation: () => {
