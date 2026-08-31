@@ -1,8 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LogOut, LayoutDashboard, CreditCard, Sparkles, ChevronDown } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
 import { useAppStore } from '@/store/useAppStore';
+import { Badge } from '@/components/ui/Badge';
+import {
+  User as UserIcon,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+  ChevronDown,
+  ShieldCheck,
+  CreditCard,
+} from 'lucide-react';
 
 interface UserMenuProps {
   onNavigate?: (route: string) => void;
@@ -11,22 +19,26 @@ interface UserMenuProps {
 export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
   const { user, logout } = useAuthStore();
   const { addToast } = useAppStore();
 
   const userEmail = user?.email || 'user@example.com';
-  const displayName = user?.user_metadata?.full_name || userEmail.split('@')[0];
-  const initials = displayName.substring(0, 2).toUpperCase();
+  const fullName = user?.user_metadata?.full_name || '';
+  const displayName = fullName || userEmail.split('@')[0];
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const handleMenuItem = (route: string) => {
+    setIsOpen(false);
+    if (onNavigate) {
+      onNavigate(route);
+    }
+  };
 
   const handleSignOut = async () => {
     setIsOpen(false);
@@ -43,10 +55,22 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleMenuItem = (route: string) => {
-    setIsOpen(false);
-    if (onNavigate) onNavigate(route);
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isUserAdmin =
+    userEmail === 'admin@clearcut.ai' ||
+    userEmail === 'mitulkabirbadhon7@gmail.com' ||
+    user?.user_metadata?.role === 'admin' ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('approved_admins')?.includes(userEmail));
 
   return (
     <div className="relative" ref={menuRef}>
@@ -61,7 +85,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
           </div>
         </div>
         <div className="hidden lg:flex flex-col text-left">
-          <span className="text-xs font-bold text-text-primary leading-tight truncate max-w-[120px]">
+          <span className="text-xs font-bold text-text-primary leading-tight truncate max-w-[130px]">
             {displayName}
           </span>
           <span className="text-[10px] text-brand-cyan font-semibold">5 Free Daily Credits</span>
@@ -82,39 +106,52 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onNavigate }) => {
           </div>
 
           <div className="pt-1 space-y-0.5">
+            {/* 1. Profile */}
             <button
               onClick={() => handleMenuItem('dashboard')}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
             >
-              <LayoutDashboard className="w-4 h-4 text-brand-cyan" />
+              <UserIcon className="w-4 h-4 text-brand-cyan" />
+              <span>My Profile</span>
+            </button>
+
+            {/* 2. Dashboard */}
+            <button
+              onClick={() => handleMenuItem('dashboard')}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4 text-brand-blue" />
               <span>User Dashboard</span>
             </button>
 
-            {(userEmail === 'admin@clearcut.ai' || userEmail === 'mitulkabirbadhon7@gmail.com' || user?.user_metadata?.role === 'admin' || localStorage.getItem('approved_admins')?.includes(userEmail)) && (
-              <button
-                onClick={() => handleMenuItem('admin')}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
-              >
-                <Sparkles className="w-4 h-4 text-brand-pink" />
-                <span>Admin Panel</span>
-              </button>
-            )}
-
+            {/* 3. Account Settings */}
             <button
-              onClick={() => handleMenuItem('home')}
+              onClick={() => handleMenuItem('dashboard')}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
             >
-              <Sparkles className="w-4 h-4 text-brand-pink" />
-              <span>Remove Background</span>
+              <Settings className="w-4 h-4 text-text-muted" />
+              <span>Account Settings</span>
             </button>
 
+            {/* 4. Top-up Credits (bKash) */}
             <button
               onClick={() => handleMenuItem('pricing')}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-colors"
             >
-              <CreditCard className="w-4 h-4 text-pink-500" />
+              <CreditCard className="w-4 h-4 text-brand-pink" />
               <span>Top-up Credits (bKash)</span>
             </button>
+
+            {/* 5. Admin Panel (If authorized) */}
+            {isUserAdmin && (
+              <button
+                onClick={() => handleMenuItem('admin')}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-brand-pink hover:bg-brand-pink/10 transition-colors"
+              >
+                <ShieldCheck className="w-4 h-4 text-brand-pink" />
+                <span>Admin Panel</span>
+              </button>
+            )}
           </div>
 
           <div className="pt-1 border-t border-border-subtle">

@@ -60,18 +60,44 @@ export async function signUpWithEmail(email: string, password: string, fullName?
     throw new Error('Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
+  // 1. Check if email already exists in profiles
+  try {
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', cleanEmail)
+      .maybeSingle();
+
+    if (existingProfile) {
+      throw new Error('An account with this email address already exists. Please sign in instead.');
+    }
+  } catch (err: any) {
+    if (err.message && err.message.includes('already exists')) {
+      throw err;
+    }
+  }
+
+  // 2. Perform Supabase signUp
   const { data, error } = await supabase.auth.signUp({
-    email,
+    email: cleanEmail,
     password,
     options: {
       data: {
         full_name: fullName || '',
       },
-      emailRedirectTo: `${window.location.origin}/#auth`,
+      emailRedirectTo: `${window.location.origin}`,
     },
   });
 
   if (error) throw error;
+
+  // 3. Supabase returns empty identities array if email was already registered
+  if (data?.user && data.user.identities && data.user.identities.length === 0) {
+    throw new Error('An account with this email address already exists. Please sign in instead.');
+  }
+
   return data;
 }
 

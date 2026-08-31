@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from './UserMenu';
-import { Menu, X, Sparkles, LogIn, Sun, Moon } from 'lucide-react';
+import { Menu, X, LogIn, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -31,6 +31,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       onNavigate(id);
     }
   };
+
+  const isUserAdmin =
+    user &&
+    (user.email === 'admin@clearcut.ai' ||
+      user.email === 'mitulkabirbadhon7@gmail.com' ||
+      user.user_metadata?.role === 'admin' ||
+      (typeof localStorage !== 'undefined' && localStorage.getItem('approved_admins')?.includes(user.email || '')));
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-background/80 backdrop-blur-xl">
@@ -67,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               Dashboard
             </button>
           )}
-          {user && (user.email === 'admin@clearcut.ai' || user.email === 'mitulkabirbadhon7@gmail.com' || user.user_metadata?.role === 'admin' || localStorage.getItem('approved_admins')?.includes(user.email || '')) && (
+          {isUserAdmin && (
             <button
               onClick={() => handleLinkClick('admin')}
               className={`text-sm font-medium transition-colors hover:text-brand-pink ${
@@ -99,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <UserMenu onNavigate={onNavigate} />
           ) : (
             <Button
-              variant="ghost"
+              variant="gradient"
               size="sm"
               leftIcon={<LogIn className="w-4 h-4" />}
               onClick={() => handleLinkClick('auth')}
@@ -107,15 +114,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               Sign In
             </Button>
           )}
-
-          <Button
-            variant="gradient"
-            size="sm"
-            leftIcon={<Sparkles className="w-4 h-4" />}
-            onClick={() => handleLinkClick('home')}
-          >
-            Remove Background
-          </Button>
         </div>
 
         {/* Mobile Controls */}
@@ -177,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 User Dashboard
               </button>
             )}
-            {user && (user.email === 'admin@clearcut.ai' || user.email === 'mitulkabirbadhon7@gmail.com' || user.user_metadata?.role === 'admin' || localStorage.getItem('approved_admins')?.includes(user.email || '')) && (
+            {isUserAdmin && (
               <button
                 onClick={() => handleLinkClick('admin')}
                 className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
@@ -196,24 +194,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             ) : (
               <Button
-                variant="outline"
+                variant="gradient"
                 size="md"
                 className="w-full justify-center"
                 leftIcon={<LogIn className="w-4 h-4" />}
                 onClick={() => handleLinkClick('auth')}
               >
-                Sign In
+                Sign In / Register
               </Button>
             )}
-            <Button
-              variant="gradient"
-              size="md"
-              className="w-full justify-center"
-              leftIcon={<Sparkles className="w-4 h-4" />}
-              onClick={() => handleLinkClick('home')}
-            >
-              Remove Background
-            </Button>
           </div>
         </div>
       )}
